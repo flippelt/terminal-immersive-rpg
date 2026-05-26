@@ -12,7 +12,7 @@
     "muted": "#8a5a1a",
     "error": "#ff6464"
   },
-  "font": "'IBM Plex Mono'",
+  "font": "'3270 Nerd Font Mono SemiCondensed'",
   "fontSize": "18px",
   "crt": { "glow": "6px", "typeSpeed": 10 },
   "locks": {

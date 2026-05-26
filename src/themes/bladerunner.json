@@ -12,8 +12,8 @@
     "muted": "#3a6a7a",
     "error": "#ff6e6e"
   },
-  "font": "'Share Tech Mono'",
-  "fontSize": "19px",
+  "font": "'Terminal Grotesque Open'",
+  "fontSize": "20px",
   "crt": { "glow": "7px", "typeSpeed": 12 },
   "locks": {
     "crackDefault": 5500,

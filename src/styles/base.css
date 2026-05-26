@@ -1,3 +1,30 @@
+/* === Self-hosted fonts ===
+   Served from /public/fonts/. Vite rewrites url() with base path on build. */
+
+@font-face {
+  font-family: '3270 Nerd Font Mono';
+  src: url('/fonts/3270NerdFontMono-Regular.ttf') format('truetype');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: '3270 Nerd Font Mono SemiCondensed';
+  src: url('/fonts/3270NerdFontMono-SemiCondensed.ttf') format('truetype');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Terminal Grotesque';
+  src: url('/fonts/terminal-grotesque.ttf') format('truetype');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Terminal Grotesque Open';
+  src: url('/fonts/terminal-grotesque_open.otf') format('opentype');
+  font-display: swap;
+}
+
 *,
 *::before,
 *::after {
@@ -15,7 +42,7 @@ body,
 body {
   background: #000;
   color: var(--fg, #33ff33);
-  font-family: var(--font, 'VT323'), 'Share Tech Mono', monospace;
+  font-family: var(--font, '3270 Nerd Font Mono'), 'Courier New', monospace;
   overflow: hidden;
   user-select: text;
 }

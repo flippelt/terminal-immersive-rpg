@@ -12,8 +12,8 @@
     "muted": "#6a3010",
     "error": "#ff3030"
   },
-  "font": "'Major Mono Display'",
-  "fontSize": "18px",
+  "font": "'Terminal Grotesque'",
+  "fontSize": "20px",
   "crt": { "glow": "10px", "typeSpeed": 16 },
   "locks": {
     "crackDefault": 8000,

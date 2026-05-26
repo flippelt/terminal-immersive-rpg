@@ -14,7 +14,7 @@ function applyThemeCssVars(theme) {
   root.style.setProperty('--accent', p.accent ?? p.fg ?? '#88ff88')
   root.style.setProperty('--muted', p.muted ?? '#1a661a')
   root.style.setProperty('--error', p.error ?? '#ff4444')
-  root.style.setProperty('--font', theme.font ?? "'VT323'")
+  root.style.setProperty('--font', theme.font ?? "'3270 Nerd Font Mono'")
   root.style.setProperty('--font-size', theme.fontSize ?? '20px')
   root.style.setProperty('--glow', theme.crt?.glow ?? '6px')
 }

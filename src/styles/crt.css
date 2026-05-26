@@ -204,7 +204,7 @@
 
 /* === ASCII banner === */
 .banner {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: '3270 Nerd Font Mono', 'Courier New', monospace;
   white-space: pre;
   font-size: 0.78em;
   line-height: 1.05;
