@@ -15,6 +15,9 @@
   "font": "'3270 Nerd Font Mono'",
   "fontSize": "18px",
   "crt": { "glow": "8px", "typeSpeed": 14 },
+  "sounds": {
+    "whoosh": { "duration": 0.85, "freqStart": 60, "freqEnd": 950, "tone": 0.45, "type": "sawtooth", "gain": 0.2 }
+  },
   "locks": {
     "crackDefault": 6000,
     "decryptDefault": 1500,

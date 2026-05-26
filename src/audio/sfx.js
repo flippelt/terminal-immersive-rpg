@@ -141,17 +141,22 @@ export function playBeep(profile = {}, kind = 'ok') {
 }
 
 // Boot whoosh — fired on theme change / reboot.
+// Two layers: a swept-bandpass noise (texture) and an optional tonal
+// rise (`tone` 0..1) that gives a "powering up" feel. With tone: 0 it's
+// pure noise — identical to the original behavior.
 export function playWhoosh(profile = {}) {
   const c = ensure()
   if (!c || _muted) return
   unsuspend(c)
-  const dur = profile.duration ?? 0.7
-  const fStart = profile.freqStart ?? 80
-  const fEnd = profile.freqEnd ?? 1400
-  const gain = profile.gain ?? 0.18
-
+  const dur = profile.duration ?? 0.6
+  const fStart = profile.freqStart ?? 140
+  const fEnd = profile.freqEnd ?? 1800
+  const gain = profile.gain ?? 0.2
+  const tone = profile.tone ?? 0.5
+  const q = profile.q ?? 6
   const now = c.currentTime
-  // White-noise buffer
+
+  // --- noise texture layer ---
   const bufferSize = Math.max(1, Math.floor(c.sampleRate * dur))
   const buffer = c.createBuffer(1, bufferSize, c.sampleRate)
   const data = buffer.getChannelData(0)
@@ -162,15 +167,31 @@ export function playWhoosh(profile = {}) {
 
   const filter = c.createBiquadFilter()
   filter.type = 'bandpass'
-  filter.Q.value = 6
+  filter.Q.value = q
   filter.frequency.setValueAtTime(fStart, now)
   filter.frequency.exponentialRampToValueAtTime(fEnd, now + dur)
 
-  const g = c.createGain()
-  g.gain.setValueAtTime(gain, now)
-  g.gain.exponentialRampToValueAtTime(0.0005, now + dur)
+  const ng = c.createGain()
+  const noiseGain = tone > 0 ? gain * 0.55 : gain
+  ng.gain.setValueAtTime(noiseGain, now)
+  ng.gain.exponentialRampToValueAtTime(0.0005, now + dur)
 
-  noise.connect(filter).connect(g).connect(_master)
+  noise.connect(filter).connect(ng).connect(_master)
   noise.start(now)
   noise.stop(now + dur + 0.05)
+
+  // --- tonal rise layer ---
+  if (tone > 0) {
+    const osc = c.createOscillator()
+    osc.type = profile.type ?? 'triangle'
+    osc.frequency.setValueAtTime(fStart, now)
+    osc.frequency.exponentialRampToValueAtTime(fEnd, now + dur * 0.85)
+    const og = c.createGain()
+    og.gain.setValueAtTime(0.0005, now)
+    og.gain.exponentialRampToValueAtTime(gain * tone, now + dur * 0.22)
+    og.gain.exponentialRampToValueAtTime(0.0005, now + dur)
+    osc.connect(og).connect(_master)
+    osc.start(now)
+    osc.stop(now + dur + 0.05)
+  }
 }

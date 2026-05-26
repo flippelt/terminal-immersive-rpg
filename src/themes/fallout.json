@@ -15,6 +15,9 @@
   "font": "'Terminal Grotesque'",
   "fontSize": "20px",
   "crt": { "glow": "12px", "typeSpeed": 18 },
+  "sounds": {
+    "whoosh": { "duration": 0.55, "freqStart": 420, "freqEnd": 1300, "tone": 0.8, "type": "square", "gain": 0.16 }
+  },
   "locks": {
     "crackDefault": 7000,
     "decryptDefault": 1800,
