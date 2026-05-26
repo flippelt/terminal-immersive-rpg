@@ -206,9 +206,12 @@
 
 .cursor--inline {
   display: inline-block;
-  min-width: 0.6em;
+  min-width: 1ch;
   text-shadow: none;
-  background: currentColor;
+  /* Use var(--fg) explicitly. Using `currentColor` here would resolve
+     against the .cursor--inline's own `color`, which we set to --bg --
+     making the block invisible (bg-on-bg). */
+  background-color: var(--fg, #33ff33);
   color: var(--bg, #000);
   animation: blink-block 1.05s steps(2, end) infinite;
 }
@@ -217,11 +220,11 @@
    during the "off" half of the cycle (matches xterm/cool-retro-term). */
 @keyframes blink-block {
   0%, 49% {
-    background: currentColor;
+    background-color: var(--fg, #33ff33);
     color: var(--bg, #000);
   }
   50%, 100% {
-    background: transparent;
+    background-color: transparent;
     color: inherit;
   }
 }
