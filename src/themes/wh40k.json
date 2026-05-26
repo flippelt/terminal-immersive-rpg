@@ -15,7 +15,13 @@
   "font": "'Major Mono Display'",
   "fontSize": "18px",
   "crt": { "glow": "10px", "typeSpeed": 16 },
-  "banner": "    ++  THE OMNISSIAH PROTECTS  ++\n  ____   ___   ____ ___ _____ ___   ____\n / ___| / _ \\ / ___|_ _|_   _/ _ \\ |  _ \\\n| |    | | | | |  _ | |  | || | | || |_) |\n| |___ | |_| | |_| || |  | || |_| ||  _ <\n \\____| \\___/ \\____|___| |_| \\___/ |_| \\_\\\n     ++  ADEPTUS MECHANICUS  ++",
+  "locks": {
+    "crackDefault": 8000,
+    "decryptDefault": 2000,
+    "crackLabel": "RECITING UNAUTHORIZED LITANY",
+    "decryptLabel": "INTONING SACRED KEY"
+  },
+  "banner": "                    ++  THE OMNISSIAH PROTECTS  ++\n  ____    ___    ____   ___   _____      _      _____    ___   ____  \n / ___|  / _ \\   / ___| |_ _| |_   _|    / \\    |_   _|  / _ \\  |  _ \\ \n| |     | | | | | |  _   | |    | |     / _ \\     | |   | | | | | |_) |\n| |___  | |_| | | |_| |  | |    | |    / ___ \\    | |   | |_| | |  _ < \n \\____|  \\___/   \\____| |___|   |_|   /_/   \\_\\   |_|    \\___/  |_| \\_\\\n                      ++  ADEPTUS MECHANICUS  ++",
   "boot": [
     { "text": "++ INVOCATION OF MACHINE SPIRIT ++", "type": "muted" },
     { "text": "++ litany of activation: spoken ++", "type": "muted" },
@@ -58,7 +64,12 @@
     "/heresy.dat": {
       "type": "file",
       "locked": true,
-      "content": "++ ACCESS DENIED. INQUISITION TRACE INITIATED. ++"
+      "password": "++LORGAR++",
+      "crackable": false,
+      "crackFailMessage": "++ THE MACHINE SPIRIT REFUSES. INQUISITION TRACE INITIATED. ++",
+      "decryptLabel": "WHISPERING THE FORBIDDEN NAME",
+      "decryptTime": 3000,
+      "content": "++ HERETICAL DOCUMENT — DESTROY ON SIGHT ++\n\nFrom the writings of Lorgar, before his fall:\n   The pantheon is real.\n   The Emperor is not the only god.\n   Look upon the warp. Look without fear.\n\n[++ magos, this file should not exist. confess to the bishop. ++]"
     },
     "/archives":     { "type": "dir", "children": ["stc-fragment-7.dat", "forgeworlds.txt"] },
     "/archives/stc-fragment-7.dat": {

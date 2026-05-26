@@ -15,6 +15,12 @@
   "font": "'Share Tech Mono'",
   "fontSize": "19px",
   "crt": { "glow": "7px", "typeSpeed": 12 },
+  "locks": {
+    "crackDefault": 5500,
+    "decryptDefault": 1400,
+    "crackLabel": "ENHANCING ENCRYPTED FRAME",
+    "decryptLabel": "RESOLVING IMPLANT"
+  },
   "banner": "  _____ ____  ____  _____ ____\n | ____/ ___||  _ \\| ____|  _ \\\n |  _| \\___ \\| |_) |  _| | |_) |\n | |___ ___) |  __/| |___|  _ <\n |_____|____/|_|   |_____|_| \\_\\\n        TYRELL CORP. — MORE HUMAN THAN HUMAN",
   "boot": [
     { "text": "[esper] photo analysis machine v3", "type": "muted" },
@@ -69,7 +75,16 @@
     "/subjects/zhora.dat":   { "type": "file", "content": "ZHORA SALOME // Nexus-6 // standard pleasure model trained for off-world kick murder squad\nLocation: Snake Pit cabaret, sector 4." },
     "/subjects/pris.dat":    { "type": "file", "content": "PRIS STRATTON // Nexus-6 // basic pleasure model\nKnown to associate with J.F. Sebastian (genetic designer)." },
     "/subjects/batty.dat":   { "type": "file", "content": "ROY BATTY // Nexus-6 // combat\nThe leader. Talks too much for a machine. Talks like it matters." },
-    "/subjects/rachael.dat": { "type": "file", "locked": true, "content": "[experimental // Tyrell eyes only]" },
+    "/subjects/rachael.dat": {
+      "type": "file",
+      "locked": true,
+      "password": "NEXUS-7",
+      "crackTime": 5500,
+      "crackable": true,
+      "lockLabel": "BYPASSING TYRELL CIPHER",
+      "crackSuccessMessage": "tyrell vault peeled open. she doesn't know what she is.",
+      "content": "RACHAEL // experimental subject\n  classification: Nexus-7 (unreleased)\n  implanted memories: yes — niece of Eldon Tyrell\n  baseline anomaly: extreme\n  status: she does not know.\n\n[Deckard, you of all people. how can it not know what it is?]"
+    },
     "/plates":     { "type": "dir", "children": ["leon-01.jpg.idx"] },
     "/plates/leon-01.jpg.idx": {
       "type": "file",

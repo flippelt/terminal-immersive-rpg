@@ -159,6 +159,11 @@
 .line--ok    { color: var(--accent, #88ff88); }
 .line--muted { color: var(--muted, #1a661a); }
 .line--user  { color: var(--accent, #88ff88); }
+.line--progress {
+  color: var(--accent, #88ff88);
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
 
 .prompt-line {
   display: flex;

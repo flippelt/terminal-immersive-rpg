@@ -15,6 +15,12 @@
   "font": "'IBM Plex Mono'",
   "fontSize": "18px",
   "crt": { "glow": "6px", "typeSpeed": 10 },
+  "locks": {
+    "crackDefault": 4500,
+    "decryptDefault": 1200,
+    "crackLabel": "SUBVERTING SECCOMM HANDSHAKE",
+    "decryptLabel": "RESOLVING SIGIL"
+  },
   "banner": "  ____ ___  __  __ ____     ____ ___  _   _\n / ___/ _ \\|  \\/  |  _ \\   / ___/ _ \\| \\ | |\n| |  | | | | |\\/| | |_) | | |  | | | |  \\| |\n| |__| |_| | |  | |  __/  | |__| |_| | |\\  |\n \\____\\___/|_|  |_|_|      \\____\\___/|_| \\_|\n   COMPANION / CONSCIENCE — pilot interface",
   "boot": [
     { "text": "[ COMP/CON v4.2.7 ]", "type": "ok" },
@@ -77,7 +83,11 @@
     "/intel/secomm.dat": {
       "type": "file",
       "locked": true,
-      "content": "[clearance insufficient]"
+      "password": "HORIZON-7G",
+      "crackTime": 5000,
+      "crackable": true,
+      "crackSuccessMessage": "comp/con: clearance fabricated. union won't like this.",
+      "content": "SECCOMM INTERNAL // PRIORITY BLACK\n----------------------------------------\nSubject:   Karrakin field officer corruption\nLance dispatched as deniable asset.\nIf compromised, deny all knowledge.\n\n[comp/con annotation:]\n   pilot — they were never going to bring you home.\n   i am sorry."
     }
   }
 }

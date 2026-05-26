@@ -53,6 +53,12 @@ npm run build
   "font": "'VT323'",
   "fontSize": "20px",
   "crt": { "glow": "8px", "typeSpeed": 14 },
+  "locks": {                 // defaults para crack/decrypt neste sistema
+    "crackDefault": 5000,    // ms
+    "decryptDefault": 1500,
+    "crackLabel": "BRUTE-FORCING",
+    "decryptLabel": "DECRYPTING"
+  },
   "banner": "ASCII art opcional",
   "boot":  [ { "text": "linha 1", "type": "ok" }, ... ],
   "motd":  [ "linhas mostradas após o banner" ],
@@ -68,7 +74,36 @@ npm run build
 }
 ```
 
-Arquivos com `"locked": true` retornam `ACCESS DENIED` em `cat`.
+### Arquivos protegidos
+
+Qualquer arquivo pode ser trancado. Campos disponíveis (todos opcionais menos
+`locked`):
+
+```jsonc
+"/segredo.dat": {
+  "type": "file",
+  "locked": true,                              // obrigatório
+  "password": "swordfish",                     // habilita `decrypt`
+  "crackable": true,                           // se false, só decrypt funciona
+  "crackTime": 8000,                           // ms (override por arquivo)
+  "decryptTime": 1500,                         // ms (override por arquivo)
+  "lockLabel": "BYPASSING WEYLAND ICE",        // label no progresso de crack
+  "decryptLabel": "RESOLVING KEY",             // label no progresso de decrypt
+  "crackSuccessMessage": "ACCESS GRANTED.",    // override da mensagem de sucesso
+  "crackFailMessage": "encryption too strong", // mostrado se crackable=false
+  "content": "conteúdo revelado após desbloqueio"
+}
+```
+
+Comandos do jogador para desbloquear:
+
+- `crack <arquivo>` — força bruta, mostra barra de progresso de `crackTime` ms.
+  Falha imediata se `crackable: false`.
+- `decrypt <arquivo> <chave>` — checa `password`. Errou: rejeitado na hora.
+  Acertou: barra de `decryptTime` ms e o arquivo abre.
+
+Desbloqueios duram até `reboot` ou troca de tema. `ls` mostra `[LOCKED]` em
+arquivos ainda trancados.
 
 ## Estrutura
 

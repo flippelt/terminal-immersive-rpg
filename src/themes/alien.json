@@ -15,7 +15,13 @@
   "font": "'VT323'",
   "fontSize": "22px",
   "crt": { "glow": "8px", "typeSpeed": 14 },
-  "banner": "  __  __ _   _ ____ _____ _   _ _   _ ____\n |  \\/  | | | |_  /|_   _| | | | | | |  _ \\\n | |\\/| | | | |/ /   | | | |_| | |_| | |_) |\n | |  | | |_| / /_   | | |  _  |  _  |  _ <\n |_|  |_|\\___/____|  |_| |_| |_|_| |_|_| \\_\\\n        WEYLAND-YUTANI MAINFRAME 6000",
+  "locks": {
+    "crackDefault": 6000,
+    "decryptDefault": 1500,
+    "crackLabel": "BYPASSING ICE",
+    "decryptLabel": "RUNNING KEY"
+  },
+  "banner": "  __  __   ___    _____   _   _   _____   ____  \n|  \\/  |  / _ \\  |_   _| | | | | | ____| |  _ \\ \n| |\\/| | | | | |   | |   | |_| | |  _|   | |_) |\n| |  | | | |_| |   | |   |  _  | | |___  |  _ < \n|_|  |_|  \\___/    |_|   |_| |_| |_____| |_| \\_\\\n         WEYLAND-YUTANI MAINFRAME 6000",
   "boot": [
     { "text": "POST...", "type": "muted" },
     { "text": "MU/TH/UR 6000 // SYSTEM ONLINE", "type": "ok" },
@@ -59,7 +65,16 @@
     "/logs":        { "type": "dir", "children": ["dallas.log", "kane.log", "ash.log"] },
     "/logs/dallas.log": { "type": "file", "content": "STARDATE 122/2087.\nReceiving transmission from LV-426.\nDescent ordered. Lambert thinks it's not a distress call.\nI agree." },
     "/logs/kane.log":   { "type": "file", "content": "[CORRUPTED]\n... organism ... attached to my face ...\n... feel fine. hungry, actually." },
-    "/logs/ash.log":    { "type": "file", "locked": true, "content": "[ENCRYPTED]" },
+    "/logs/ash.log": {
+      "type": "file",
+      "locked": true,
+      "password": "MOTHER",
+      "crackTime": 7000,
+      "crackable": true,
+      "lockLabel": "BYPASSING SCIENCE OFFICER LOCK",
+      "crackSuccessMessage": "MU/TH/UR LOCK BYPASSED.",
+      "content": "ASH PERSONAL LOG // [recovered]\n\nThey still don't understand what I am.\nThe organism is the perfect creature. Hostility wrapped in beauty.\nI admire it.\nI have my orders. Order 937. The crew are unnecessary."
+    },
     "/personnel":   { "type": "dir", "children": ["crew.txt"] },
     "/personnel/crew.txt": {
       "type": "file",
