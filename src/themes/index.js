@@ -9,7 +9,8 @@ const ALL = [alien, lancer, bladerunner, wh40k, fallout, cyberpunk]
 
 // Demo build (vite build --mode demo) shows a curated subset suitable
 // for a public showcase. Edit DEMO_IDS to taste — keep it stable.
-const DEMO_IDS = ['alien', 'lancer', 'br', 'fallout', 'cprd']
+// Keep the demo *short* — it's a taste, not a vitrine.
+const DEMO_IDS = ['alien', 'cprd']
 
 export const IS_DEMO = import.meta.env.MODE === 'demo'
 
