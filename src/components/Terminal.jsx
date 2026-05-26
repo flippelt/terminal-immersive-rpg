@@ -3,6 +3,7 @@ import OutputLine from './OutputLine.jsx'
 import Prompt from './Prompt.jsx'
 import PasswordModal from './PasswordModal.jsx'
 import { runCommand, buildDecryptLines } from '../engine/commands.js'
+import { playBeep, playWhoosh } from '../audio/sfx.js'
 
 let LINE_ID = 0
 const nextId = () => ++LINE_ID
@@ -45,6 +46,7 @@ export default function Terminal({ theme, themes, onSwitchTheme, gmMode, onToggl
       : []
     const motd = (theme.motd ?? []).map((t) => toLine({ text: t }))
     setHistory([...boot, ...banner, ...motd, toLine({ text: '', instant: true })])
+    playWhoosh(theme.sounds?.whoosh)
   }, [theme, bootSeq])
 
   useEffect(() => {
@@ -52,10 +54,16 @@ export default function Terminal({ theme, themes, onSwitchTheme, gmMode, onToggl
     if (el) el.scrollTop = el.scrollHeight
   }, [history, animIdx])
 
+  const themeRef = useRef(theme)
+  themeRef.current = theme
+
   const advance = useCallback(() => {
     setAnimIdx((i) => {
       const current = historyRef.current[i]
       current?.onComplete?.()
+      if (current?.type === 'err' || current?.type === 'ok') {
+        playBeep(themeRef.current.sounds?.beep, current.type)
+      }
       return i + 1
     })
   }, [])
@@ -168,6 +176,7 @@ export default function Terminal({ theme, themes, onSwitchTheme, gmMode, onToggl
             cwd={cwd}
             onSubmit={handleSubmit}
             history={cmdHistory}
+            sounds={theme.sounds}
           />
         )}
       </div>

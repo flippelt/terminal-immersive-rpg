@@ -1,4 +1,10 @@
 import { normalizePath, getNode, listDir } from './filesystem.js'
+import {
+  setVolume as audioSetVolume,
+  setMuted as audioSetMuted,
+  getVolume as audioGetVolume,
+  isMuted as audioIsMuted
+} from '../audio/sfx.js'
 
 // Each command receives a `ctx` object and returns an array of "lines".
 // Line shapes:
@@ -25,6 +31,7 @@ const help = (extra = []) => [
   { text: '  reboot                cold restart' },
   { text: '  crack <file>          brute-force a locked file' },
   { text: '  decrypt <file> <key>  unlock with password' },
+  { text: '  volume [0-100|mute]   audio level' },
   ...extra.map((line) => ({ text: line, type: 'muted' }))
 ]
 
@@ -134,6 +141,35 @@ const COMMANDS = {
       ]
     }
     return (node.content ?? '').split('\n').map((text) => ({ text }))
+  },
+
+  volume: (ctx) => {
+    const arg = ctx.args[0]
+    if (!arg) {
+      return [
+        {
+          text: `audio: ${audioIsMuted() ? 'muted' : Math.round(audioGetVolume() * 100) + '%'}`
+        },
+        { text: 'usage: volume <0-100> | volume mute | volume unmute', type: 'muted' }
+      ]
+    }
+    if (arg === 'mute') {
+      audioSetMuted(true)
+      localStorage.setItem('tirpg.muted', 'true')
+      return [{ text: 'audio muted.', type: 'muted' }]
+    }
+    if (arg === 'unmute') {
+      audioSetMuted(false)
+      localStorage.setItem('tirpg.muted', 'false')
+      return [{ text: 'audio unmuted.', type: 'ok' }]
+    }
+    const n = parseInt(arg, 10)
+    if (!Number.isFinite(n) || n < 0 || n > 100) {
+      return [{ text: 'volume: expected 0-100', type: 'err' }]
+    }
+    audioSetVolume(n / 100)
+    localStorage.setItem('tirpg.volume', String(n / 100))
+    return [{ text: `volume: ${n}%`, type: 'ok' }]
   },
 
   // Hidden — toggles GM mode. Not in `help`. Same as Ctrl+Shift+G.

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import Terminal from './components/Terminal.jsx'
 import ThemeSwitcher from './components/ThemeSwitcher.jsx'
+import AudioToggle from './components/AudioToggle.jsx'
+import { setVolume as setAudioVolume } from './audio/sfx.js'
 import { THEMES, DEFAULT_THEME, THEME_BY_ID, IS_DEMO } from './themes/index.js'
 
 const LS_KEY = 'tirpg.theme'
@@ -26,6 +28,12 @@ export default function App() {
   })
   // GM mode is session-only by design — don't persist (default off each load).
   const [gmMode, setGmMode] = useState(false)
+
+  // Restore audio volume from localStorage once on mount.
+  useEffect(() => {
+    const stored = parseFloat(localStorage.getItem('tirpg.volume') ?? '0.4')
+    setAudioVolume(Number.isFinite(stored) ? stored : 0.4)
+  }, [])
 
   const toggleGm = useCallback(() => setGmMode((m) => !m), [])
 
@@ -73,6 +81,7 @@ export default function App() {
         current={theme.id}
         onSelect={setTheme}
       />
+      <AudioToggle />
     </div>
   )
 }

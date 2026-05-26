@@ -166,6 +166,27 @@
   font-size: 0.7em;
 }
 
+.audio-toggle {
+  position: absolute;
+  bottom: 12px;
+  right: 18px;
+  z-index: 6;
+  font-size: 0.7em;
+  opacity: 0.55;
+  border: 1px solid transparent;
+  padding: 4px 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.audio-toggle:hover {
+  opacity: 1;
+  border-color: currentColor;
+}
+
 /* === Terminal text === */
 .line {
   white-space: pre-wrap;

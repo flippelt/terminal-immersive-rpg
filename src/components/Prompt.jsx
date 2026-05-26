@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
+import { playKeystroke } from '../audio/sfx.js'
 
 // Terminal-style prompt:
 // - A hidden <input> captures keystrokes (focusable but invisible).
 // - The visible text is rendered by us, so the cursor can be a true
 //   inline block at the caret position — moves with typing AND with
 //   ArrowLeft/Right within the line.
-export default function Prompt({ sigil, cwd, onSubmit, history }) {
+export default function Prompt({ sigil, cwd, onSubmit, history, sounds }) {
   const [value, setValue] = useState('')
   const [caret, setCaret] = useState(0)
   const [histIdx, setHistIdx] = useState(history.length)
@@ -73,6 +74,9 @@ export default function Prompt({ sigil, cwd, onSubmit, history }) {
   }
 
   const onChange = (e) => {
+    if (e.target.value.length > value.length) {
+      playKeystroke(sounds?.keystroke)
+    }
     setValue(e.target.value)
     setCaret(e.target.selectionStart ?? e.target.value.length)
   }
