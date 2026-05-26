@@ -43,6 +43,52 @@ export function isMuted() {
   return _muted
 }
 
+// Continuous low CRT hum (off by default). Routed through _master so the
+// volume slider / mute affect it. Two sine partials + a slow LFO wobble.
+let _hum = null
+export function startHum(profile = {}) {
+  const c = ensure()
+  if (!c || _hum) return
+  unsuspend(c)
+  const base = profile.freq ?? 60
+  const gain = profile.gain ?? 0.04
+  const osc1 = c.createOscillator()
+  osc1.type = 'sine'
+  osc1.frequency.value = base
+  const osc2 = c.createOscillator()
+  osc2.type = 'sine'
+  osc2.frequency.value = base * 2
+  const g = c.createGain()
+  g.gain.value = gain
+  const lfo = c.createOscillator()
+  lfo.type = 'sine'
+  lfo.frequency.value = 0.2
+  const lfoGain = c.createGain()
+  lfoGain.gain.value = gain * 0.35
+  lfo.connect(lfoGain).connect(g.gain)
+  osc1.connect(g)
+  osc2.connect(g)
+  g.connect(_master)
+  osc1.start()
+  osc2.start()
+  lfo.start()
+  _hum = { osc1, osc2, lfo }
+}
+export function stopHum() {
+  if (!_hum) return
+  for (const node of Object.values(_hum)) {
+    try {
+      node.stop()
+    } catch {
+      // already stopped
+    }
+  }
+  _hum = null
+}
+export function isHumOn() {
+  return !!_hum
+}
+
 // Keystroke — fired on each printable keypress. Default is a percussive
 // noise click (mechanical-keyboard feel). Set `kind: 'tone'` for the old
 // retro beep.

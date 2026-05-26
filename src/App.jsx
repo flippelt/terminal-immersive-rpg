@@ -3,7 +3,7 @@ import Terminal from './components/Terminal.jsx'
 import ThemeSwitcher from './components/ThemeSwitcher.jsx'
 import AudioToggle from './components/AudioToggle.jsx'
 import Screensaver from './components/Screensaver.jsx'
-import { setVolume as setAudioVolume } from './audio/sfx.js'
+import { setVolume as setAudioVolume, startHum } from './audio/sfx.js'
 
 const IDLE_MS = 45000
 import {
@@ -116,10 +116,12 @@ export default function App() {
     }
   }, [])
 
-  // Restore audio volume once on mount.
+  // Restore audio volume + ambient hum once on mount. (Hum is off by
+  // default; it only sounds once the AudioContext resumes on first input.)
   useEffect(() => {
     const stored = parseFloat(localStorage.getItem('tirpg.volume') ?? '0.4')
     setAudioVolume(Number.isFinite(stored) ? stored : 0.4)
+    if (localStorage.getItem('tirpg.hum') === 'on') startHum()
   }, [])
 
   useEffect(() => {

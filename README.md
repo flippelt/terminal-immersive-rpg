@@ -73,6 +73,7 @@ A lista de temas que aparecem no demo fica em `DEMO_IDS` em
 | `theme [id]` | troca de sistema |
 | `scenario [list\|load <id>]` | troca de campanha dentro do sistema |
 | `volume [0-100\|mute\|unmute]` | nível de áudio |
+| `hum [on\|off]` | hum ambiente de CRT (desligado por padrão) |
 | `whoami` · `date` · `motd` · `clear` · `reboot` | utilitários |
 
 Cada cenário ainda adiciona comandos próprios (ex.: `vk`/`enhance` no Blade

@@ -4,7 +4,10 @@ import {
   setVolume as audioSetVolume,
   setMuted as audioSetMuted,
   getVolume as audioGetVolume,
-  isMuted as audioIsMuted
+  isMuted as audioIsMuted,
+  startHum as audioStartHum,
+  stopHum as audioStopHum,
+  isHumOn as audioIsHumOn
 } from '../audio/sfx.js'
 
 // Each command receives a `ctx` object and returns an array of "lines".
@@ -37,6 +40,7 @@ const help = (extra = []) => [
   { text: '  crack <file>          brute-force a locked file' },
   { text: '  decrypt <file> <key>  unlock with password' },
   { text: '  volume [0-100|mute]   audio level' },
+  { text: '  hum [on|off]          ambient CRT hum' },
   ...extra.map((line) => ({ text: line, type: 'muted' }))
 ]
 
@@ -276,6 +280,21 @@ const COMMANDS = {
     return out.length
       ? out.sort((a, b) => a.text.localeCompare(b.text))
       : [{ text: `find: no files matching "${pat}"`, type: 'muted' }]
+  },
+
+  hum: (ctx) => {
+    const arg = ctx.args[0]
+    const turnOn = arg === 'on' || (!arg && !audioIsHumOn())
+    if (arg && arg !== 'on' && arg !== 'off')
+      return [{ text: 'hum: usage: hum [on|off]', type: 'err' }]
+    if (turnOn) {
+      audioStartHum(ctx.theme.sounds?.hum)
+      localStorage.setItem('tirpg.hum', 'on')
+      return [{ text: 'ambient hum: on', type: 'ok' }]
+    }
+    audioStopHum()
+    localStorage.setItem('tirpg.hum', 'off')
+    return [{ text: 'ambient hum: off', type: 'muted' }]
   },
 
   // Hidden — dramatic countdown. Themeable via theme.selfDestruct; scenarios
