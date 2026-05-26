@@ -1,0 +1,79 @@
+{
+  "id": "br",
+  "name": "Esper // Tyrell Corp.",
+  "header": "ESPER MACHINE // TYRELL CORP.",
+  "prompt": "esper",
+  "user": "deckard",
+  "palette": {
+    "bg": "#000308",
+    "bgSoft": "#02101a",
+    "fg": "#9adfff",
+    "accent": "#ffe0a0",
+    "muted": "#3a6a7a",
+    "error": "#ff6e6e"
+  },
+  "font": "'Share Tech Mono'",
+  "fontSize": "19px",
+  "crt": { "glow": "7px", "typeSpeed": 12 },
+  "banner": "  _____ ____  ____  _____ ____\n | ____/ ___||  _ \\| ____|  _ \\\n |  _| \\___ \\| |_) |  _| | |_) |\n | |___ ___) |  __/| |___|  _ <\n |_____|____/|_|   |_____|_| \\_\\\n        TYRELL CORP. — MORE HUMAN THAN HUMAN",
+  "boot": [
+    { "text": "[esper] photo analysis machine v3", "type": "muted" },
+    { "text": "tyrell corp. // off-world auth verified", "type": "ok" },
+    { "text": "los angeles, november 2019", "type": "muted" },
+    { "text": "" }
+  ],
+  "motd": [
+    "ESPER PHOTO ANALYZER",
+    "load and zoom images. issue retirement notices.",
+    "you are a blade runner. you know what to do.",
+    "",
+    "try: `cat case.txt`, `ls subjects`, `vk leon`",
+    ""
+  ],
+  "extraHelp": [
+    "  vk <name>             administer voight-kampff baseline",
+    "  enhance <coord>       optical zoom on loaded plate"
+  ],
+  "unknownHint": "ESPER cannot interpret that input.",
+  "commands": {
+    "vk": [
+      "VOIGHT-KAMPFF // BASELINE INITIATED",
+      "It's your birthday. Someone gives you a calfskin wallet.",
+      "  pupil dilation .......... ANOMALY",
+      "  capillary response ...... ANOMALY",
+      "  blush response .......... null",
+      "",
+      "subject classification: REPLICANT.",
+      "execute retirement order? [y/N]"
+    ],
+    "enhance": [
+      "track right ............. ok",
+      "enhance 224 to 176 ...... ok",
+      "stop ....................",
+      "track 45 right .......... ok",
+      "enhance ................. give me a hardcopy right there."
+    ]
+  },
+  "filesystem": {
+    "/":           { "type": "dir", "children": ["case.txt", "subjects", "plates", "memo.txt"] },
+    "/case.txt": {
+      "type": "file",
+      "content": "LAPD // BLADE RUNNER UNIT 419\nFile: 4127-A\n----------------------------------------\nSix Nexus-6 combat models off-world.\nTwo retired in attempting to breach Tyrell.\nFour at large in the city.\nProceed with caution. They are stronger than you."
+    },
+    "/memo.txt": {
+      "type": "file",
+      "content": "Bryant: 'You know the score, pal. If you're not cop, you're little people.'\n--\nThey don't advertise for killers in the newspaper.\nThat was my profession. Ex-cop. Ex-blade runner. Ex-killer."
+    },
+    "/subjects":   { "type": "dir", "children": ["leon.dat", "zhora.dat", "pris.dat", "batty.dat", "rachael.dat"] },
+    "/subjects/leon.dat":    { "type": "file", "content": "LEON KOWALSKI // Nexus-6 // combat/loader\nIncept date: 2017-04-10\nLast seen: Tyrell HQ, animal interview." },
+    "/subjects/zhora.dat":   { "type": "file", "content": "ZHORA SALOME // Nexus-6 // standard pleasure model trained for off-world kick murder squad\nLocation: Snake Pit cabaret, sector 4." },
+    "/subjects/pris.dat":    { "type": "file", "content": "PRIS STRATTON // Nexus-6 // basic pleasure model\nKnown to associate with J.F. Sebastian (genetic designer)." },
+    "/subjects/batty.dat":   { "type": "file", "content": "ROY BATTY // Nexus-6 // combat\nThe leader. Talks too much for a machine. Talks like it matters." },
+    "/subjects/rachael.dat": { "type": "file", "locked": true, "content": "[experimental // Tyrell eyes only]" },
+    "/plates":     { "type": "dir", "children": ["leon-01.jpg.idx"] },
+    "/plates/leon-01.jpg.idx": {
+      "type": "file",
+      "content": "[esper index]\n  frame 12 — mirror reflection — subject zhora\n  frame 47 — scale visible — animal: snake (artificial)"
+    }
+  }
+}

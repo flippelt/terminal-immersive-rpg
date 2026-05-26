@@ -1,0 +1,83 @@
+{
+  "id": "lancer",
+  "name": "COMP/CON — Union Administrative",
+  "header": "OMNINET // COMP/CON v4.2.7",
+  "prompt": "comp/con",
+  "user": "pilot",
+  "palette": {
+    "bg": "#0d0600",
+    "bgSoft": "#1a0e02",
+    "fg": "#ffb347",
+    "accent": "#fff1c1",
+    "muted": "#8a5a1a",
+    "error": "#ff6464"
+  },
+  "font": "'IBM Plex Mono'",
+  "fontSize": "18px",
+  "crt": { "glow": "6px", "typeSpeed": 10 },
+  "banner": "  ____ ___  __  __ ____     ____ ___  _   _\n / ___/ _ \\|  \\/  |  _ \\   / ___/ _ \\| \\ | |\n| |  | | | | |\\/| | |_) | | |  | | | |  \\| |\n| |__| |_| | |  | |  __/  | |__| |_| | |\\  |\n \\____\\___/|_|  |_|_|      \\____\\___/|_| \\_|\n   COMPANION / CONSCIENCE — pilot interface",
+  "boot": [
+    { "text": "[ COMP/CON v4.2.7 ]", "type": "ok" },
+    { "text": "establishing OMNINET handshake...", "type": "muted" },
+    { "text": "handshake OK. mnesis chamber synced.", "type": "muted" },
+    { "text": "good to see you again, pilot.", "type": "ok" },
+    { "text": "" }
+  ],
+  "motd": [
+    "// Union Administrative Notice //",
+    "All Lancer activity logged for the Third Committee.",
+    "Cleared to interface. Try: `cat orders.txt`, `ls mech`",
+    ""
+  ],
+  "extraHelp": [
+    "  status                 mech telemetry",
+    "  hail <callsign>        open OMNINET channel"
+  ],
+  "unknownHint": "COMP/CON can't parse that. try `help`, pilot.",
+  "commands": {
+    "status": [
+      "MECH STATUS — ENKIDU-class // hull integrity 87%",
+      "  HEAT       ▓▓▓░░░░░░░  3 / 10",
+      "  STRUCTURE  ████░       4 / 4",
+      "  STRESS     ████░       4 / 4",
+      "  CORE       READY  [ press `core` to deploy ]"
+    ],
+    "core": [
+      "CORE POWER ENGAGED.",
+      "AUTHORIZED. RECOMMEND CAUTION.",
+      "Pilot, you know what to do."
+    ],
+    "hail": [
+      "OPENING OMNINET CHANNEL...",
+      "[static]",
+      "...this is Union Operator 9. go ahead, lance."
+    ]
+  },
+  "filesystem": {
+    "/":             { "type": "dir", "children": ["orders.txt", "mech", "logs", "intel"] },
+    "/orders.txt": {
+      "type": "file",
+      "content": "PRIORITY GREEN — Union Administrative\n----------------------------------------\nSubject:  Hercynian disturbance, sector 7-G\nLance:    Iskandar Lance, callsign HORIZON\nMission:  Cold landing. Investigate. Do not engage SecComm assets.\n\nAuthorization: Field Officer Karrakin.\nBe a Lancer. Walk a thousand miles. Strike like lightning."
+    },
+    "/mech":         { "type": "dir", "children": ["enkidu.frame", "loadout.txt"] },
+    "/mech/enkidu.frame": {
+      "type": "file",
+      "content": "FRAME // GMS ENKIDU\nROLE   // STRIKER\nMOUNTS // MAIN, FLEX, HEAVY\nCORE   // OVERCHARGE PROTOCOL"
+    },
+    "/mech/loadout.txt": {
+      "type": "file",
+      "content": "MAIN   :: Anti-Materiel Rifle\nFLEX   :: Assault Rifle\nHEAVY  :: Charged Blade\nSYSTEMS:: Personalizations, Comp/Con (this), Heatsink"
+    },
+    "/logs":         { "type": "dir", "children": ["last-drop.log"] },
+    "/logs/last-drop.log": {
+      "type": "file",
+      "content": "DROP -1.4h\nEntry profile nominal. Lance comms clean.\nPilot stress within tolerance.\n[pause]\nI am glad you are alive."
+    },
+    "/intel":        { "type": "dir", "children": ["secomm.dat"] },
+    "/intel/secomm.dat": {
+      "type": "file",
+      "locked": true,
+      "content": "[clearance insufficient]"
+    }
+  }
+}
