@@ -42,7 +42,7 @@ export default function Terminal({ theme, themes, onSwitchTheme }) {
       : []
     const motd = (theme.motd ?? []).map((t) => toLine({ text: t }))
     setHistory([...boot, ...banner, ...motd, toLine({ text: '', instant: true })])
-  }, [theme.id, bootSeq])
+  }, [theme, bootSeq])
 
   useEffect(() => {
     const el = scrollRef.current
