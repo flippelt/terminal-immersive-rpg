@@ -2,12 +2,14 @@ import alien from './alien.json'
 import lancer from './lancer.json'
 import bladerunner from './bladerunner.json'
 import wh40k from './wh40k.json'
+import fallout from './fallout.json'
+import cyberpunk from './cyberpunk.json'
 
-const ALL = [alien, lancer, bladerunner, wh40k]
+const ALL = [alien, lancer, bladerunner, wh40k, fallout, cyberpunk]
 
 // Demo build (vite build --mode demo) shows a curated subset suitable
 // for a public showcase. Edit DEMO_IDS to taste — keep it stable.
-const DEMO_IDS = ['alien', 'lancer', 'br']
+const DEMO_IDS = ['alien', 'lancer', 'br', 'fallout', 'cprd']
 
 export const IS_DEMO = import.meta.env.MODE === 'demo'
 

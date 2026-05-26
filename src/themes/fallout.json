@@ -1,0 +1,128 @@
+{
+  "id": "fallout",
+  "name": "RobCo Termlink — Vault-Tec",
+  "header": "VAULT-TEC INDUSTRIES // TERMLINK PROTOCOL",
+  "prompt": "termlink",
+  "user": "overseer",
+  "palette": {
+    "bg": "#000800",
+    "bgSoft": "#0a1a0a",
+    "fg": "#9eff7c",
+    "accent": "#d4ff8a",
+    "muted": "#3a662a",
+    "error": "#ff8b3c"
+  },
+  "font": "'Terminal Grotesque'",
+  "fontSize": "20px",
+  "crt": { "glow": "12px", "typeSpeed": 18 },
+  "locks": {
+    "crackDefault": 7000,
+    "decryptDefault": 1800,
+    "crackLabel": "TERMLINK HACKING SUBROUTINE",
+    "decryptLabel": "PARSING DICTIONARY"
+  },
+  "banner": "╔════════════════════════════════════════════╗\n║      ROBCO INDUSTRIES (TM)                 ║\n║      TERMLINK PROTOCOL v3.2.7              ║\n║      VAULT-TEC AUTHORIZED USE ONLY         ║\n╚════════════════════════════════════════════╝",
+  "boot": [
+    { "text": "ROBCO INDUSTRIES (TM) TERMLINK PROTOCOL", "type": "muted" },
+    { "text": "ENTER PASSWORD NOW", "type": "muted" },
+    { "text": "1 ATTEMPT(S) LEFT: ████", "type": "ok" },
+    { "text": "" },
+    { "text": "Welcome to ROBCO Industries (TM) Termlink", "type": "ok" }
+  ],
+  "motd": [
+    "Vault-Tec Industries — overseer access granted",
+    "vault designation: 73",
+    "registered residents: 102",
+    "",
+    "abra: `cat overseer.log`, `ls residents`, `ls protocol`",
+    ""
+  ],
+  "extraHelp": [
+    "  pipboy                quick status readout",
+    "  rads                  current radiation level",
+    "  holotape <name>       play a holotape"
+  ],
+  "unknownHint": "TERMLINK: command not recognized. type `help`.",
+  "commands": {
+    "pipboy": [
+      "PIP-BOY 3000 STATUS",
+      "  HP        ▓▓▓▓▓▓▓▓░░  82/100",
+      "  AP        ▓▓▓▓▓▓░░░░  64/100",
+      "  RADS      ▓▓░░░░░░░░  18 RAD",
+      "  WEIGHT    142 / 200 lbs",
+      "  CAPS      $ 437"
+    ],
+    "rads": [
+      "Radiation reading: 18 RAD",
+      "Background source: trace cobalt-60 in surface vents.",
+      "Recommendation: no immediate decontamination required."
+    ],
+    "holotape": [
+      "HOLOTAPE NOT FOUND.",
+      "available: `holotape orientation`, `holotape final_message`",
+      "(or use `cat holotapes/<name>.txt`)"
+    ]
+  },
+  "filesystem": {
+    "/": {
+      "type": "dir",
+      "children": ["overseer.log", "protocol", "residents", "holotapes", "experiment.dat"]
+    },
+    "/overseer.log": {
+      "type": "file",
+      "content": "ENTRY 487 // OVERSEER GARRETT\n----------------------------------------\nMorale stable. The residents do not suspect.\nVault-Tec confirmed our supply rotation is on schedule.\nProtocol 06 holding.\n\nThey trust me. That's what makes this work.\n\nENTRY 488\nThe Vance girl asked again about the surface.\nI told her the radiation was still too high.\nShe is twelve. She has never seen the sun."
+    },
+    "/protocol": {
+      "type": "dir",
+      "children": ["briefing.txt", "directive_06.txt"]
+    },
+    "/protocol/briefing.txt": {
+      "type": "file",
+      "content": "VAULT 73 — STATED PURPOSE\n----------------------------------------\nLong-term radiation shelter for 100 residents.\nWater & food reserves: 50 years.\nReentry timeline: at Overseer's discretion.\n\n(All residents have been told reentry is mandatory in 10 years.)"
+    },
+    "/protocol/directive_06.txt": {
+      "type": "file",
+      "locked": true,
+      "password": "OVERSEER73",
+      "crackTime": 8000,
+      "crackable": true,
+      "lockLabel": "BREACHING VAULT-TEC ENCRYPTION",
+      "crackSuccessMessage": "TERMLINK CRACKED. ATTEMPT LOGGED TO VAULT-TEC HQ.",
+      "content": "DIRECTIVE 06 // EYES ONLY\n----------------------------------------\nVault 73 is a social isolation experiment.\nNever open the door. Never tell the residents.\n\nIf morale fails: refer to Contingency 08 (purge gas).\n\nThank you for your service to Vault-Tec.\nWAR. WAR NEVER CHANGES."
+    },
+    "/residents": {
+      "type": "dir",
+      "children": ["roster.txt", "vance_h.dat"]
+    },
+    "/residents/roster.txt": {
+      "type": "file",
+      "content": "VAULT 73 ROSTER (current)\n----------------------------------------\n  102 residents\n   17 children under 12\n    8 staff\n    1 overseer (Garrett, V.)\n\nLast birth: 2298 (Hannah Vance)\nLast death: 2299 (Cpt. Mendez, age 71)"
+    },
+    "/residents/vance_h.dat": {
+      "type": "file",
+      "content": "HANNAH VANCE — age 12\n  born inside Vault 73\n  parents: Mira Vance (deceased '94), Jonas Vance (terminated for asking questions)\n  flagged: \"unusually curious\" — Garrett's note\n  recommendation: monitor."
+    },
+    "/holotapes": {
+      "type": "dir",
+      "children": ["orientation.txt", "final_message.txt"]
+    },
+    "/holotapes/orientation.txt": {
+      "type": "file",
+      "content": "[HOLOTAPE — ORIENTATION, 2078]\n\nWelcome, friend. You are now a resident of Vault 73.\nYour safety is Vault-Tec's promise.\nYour Overseer's word is law.\nYour patience is the price of survival.\n\n— Vault-Tec. The Future Begins Tomorrow."
+    },
+    "/holotapes/final_message.txt": {
+      "type": "file",
+      "content": "[HOLOTAPE — UNDATED, recovered]\n\nThis is Jonas Vance.\nThe door opens. I checked. The mechanism works.\nGarrett knows. He lied.\nIf anyone finds this — Hannah, if you find this — \nrun toward the surface. The radiation outside is\n[recording ends]"
+    },
+    "/experiment.dat": {
+      "type": "file",
+      "locked": true,
+      "password": "WAR-NEVER-CHANGES",
+      "crackable": false,
+      "crackFailMessage": "VAULT-TEC ENCRYPTION HARDENED. TERMLINK SUBROUTINE INSUFFICIENT.",
+      "decryptLabel": "AUTHENTICATING VAULT-TEC HEADQUARTERS",
+      "decryptTime": 3000,
+      "content": "// VAULT-TEC INTERNAL — DESTROY ON ACCESS //\n\nVault 73 is one of 122 isolation experiments.\nResults so far:\n  V-21  — population overcrowding (failed, 2287)\n  V-27  — all-female cloning (paused)\n  V-73  — 200-year isolation (ACTIVE)\n  V-87  — F.E.V. exposure (catastrophic)\n  V-101 — single overseer (active)\n\nWar. War never changes.\n\n[corruption: end of record]"
+    }
+  }
+}
