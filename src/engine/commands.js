@@ -33,6 +33,7 @@ const help = (extra = []) => [
   { text: '  theme [id]            switch system' },
   { text: '  scenario [list|load]  switch campaign within a system' },
   { text: '  reboot                cold restart' },
+  { text: '  reset                 wipe this scenario’s progress' },
   { text: '  crack <file>          brute-force a locked file' },
   { text: '  decrypt <file> <key>  unlock with password' },
   { text: '  volume [0-100|mute]   audio level' },
@@ -80,6 +81,11 @@ const COMMANDS = {
 
   reboot: (ctx) => {
     ctx.reboot()
+    return []
+  },
+
+  reset: (ctx) => {
+    ctx.resetProgress?.()
     return []
   },
 

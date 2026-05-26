@@ -10,6 +10,17 @@ import { scenarioIdsFor } from '../themes/index.js'
 let LINE_ID = 0
 const nextId = () => ++LINE_ID
 
+// Unlock progress persists per theme+scenario so a campaign survives a
+// reload/reboot. Cleared with the `reset` command.
+const progressKey = (t) => `tirpg.progress.${t.id}.${t.scenarioId ?? 'default'}`
+const loadProgress = (t) => {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(progressKey(t)) ?? '[]'))
+  } catch {
+    return new Set()
+  }
+}
+
 // Pass through extra fields (duration, label, onComplete) for progress lines.
 const toLine = (l) => ({
   id: nextId(),
@@ -44,11 +55,12 @@ export default function Terminal({
   const historyRef = useRef(history)
   historyRef.current = history
 
-  // Boot sequence whenever theme changes (or reboot). Resets unlocks too.
+  // Boot sequence whenever theme changes (or reboot). Restores persisted
+  // unlock progress for this theme+scenario. Crack attempts stay per-session.
   useEffect(() => {
     setAnimIdx(0)
     setCwd('/')
-    setUnlocked(new Set())
+    setUnlocked(loadProgress(theme))
     setModal(null)
     setCrackAttempts(new Map())
     const boot = (theme.boot ?? []).map(toLine)
@@ -106,8 +118,23 @@ export default function Terminal({
     setUnlocked((s) => {
       const next = new Set(s)
       next.add(path)
+      try {
+        localStorage.setItem(progressKey(themeRef.current), JSON.stringify([...next]))
+      } catch {
+        // storage unavailable — unlock still works for the session
+      }
       return next
     })
+  }, [])
+
+  const resetProgress = useCallback(() => {
+    try {
+      localStorage.removeItem(progressKey(themeRef.current))
+    } catch {
+      // ignore
+    }
+    setUnlocked(new Set())
+    setBootSeq((n) => n + 1)
   }, [])
 
   const openPasswordPrompt = useCallback((path, node) => {
@@ -189,6 +216,7 @@ export default function Terminal({
         switchTheme,
         unlocked,
         unlock,
+        resetProgress,
         openPasswordPrompt,
         openCrackPrompt,
         crackAttempts,
@@ -200,7 +228,7 @@ export default function Terminal({
       if (out.length) push(out)
       push([{ text: '', instant: true }])
     },
-    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, openPasswordPrompt, openCrackPrompt, crackAttempts, gmMode, onToggleGm, onSwitchScenario]
+    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, resetProgress, openPasswordPrompt, openCrackPrompt, crackAttempts, gmMode, onToggleGm, onSwitchScenario]
   )
 
   const inputReady = animIdx >= history.length
