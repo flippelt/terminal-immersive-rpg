@@ -3,6 +3,7 @@ import OutputLine from './OutputLine.jsx'
 import Prompt from './Prompt.jsx'
 import PasswordModal from './PasswordModal.jsx'
 import { runCommand, buildDecryptLines } from '../engine/commands.js'
+import { complete } from '../engine/complete.js'
 import { playBeep, playWhoosh } from '../audio/sfx.js'
 import { scenarioIdsFor } from '../themes/index.js'
 
@@ -165,6 +166,18 @@ export default function Terminal({
   const inputReady = animIdx >= history.length
   const speed = theme.crt?.typeSpeed ?? 12
 
+  const completeInput = useCallback(
+    (input) =>
+      complete(input, {
+        fs: theme.filesystem ?? {},
+        cwd,
+        theme,
+        themes,
+        scenarioIds: scenarioIdsFor(theme.id)
+      }),
+    [theme, cwd, themes]
+  )
+
   return (
     <>
       <div className="crt__content" ref={scrollRef}>
@@ -187,6 +200,7 @@ export default function Terminal({
             onSubmit={handleSubmit}
             history={cmdHistory}
             sounds={theme.sounds}
+            complete={completeInput}
           />
         )}
       </div>
