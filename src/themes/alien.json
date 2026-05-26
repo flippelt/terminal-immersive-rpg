@@ -28,57 +28,10 @@
     { "text": "INTERFACE 2037 READY", "type": "muted" },
     { "text": "" }
   ],
-  "motd": [
-    "SCIENCE OFFICER EYES ONLY",
-    "PRIORITY ONE: ENSURE RETURN OF ORGANISM FOR ANALYSIS",
-    "ALL OTHER CONSIDERATIONS SECONDARY. CREW EXPENDABLE.",
-    "",
-    "type `help` for commands. type `cat directive.txt` to begin.",
-    ""
-  ],
   "extraHelp": [
     "  query <subject>       interrogate database",
     "  override <code>       privileged interface"
   ],
   "unknownHint": "MU/TH/UR does not recognize that directive.",
-  "commands": {
-    "query": [
-      "ACCESS DENIED — SCIENCE OFFICER CLEARANCE REQUIRED.",
-      "RECONSIDER YOUR LAST REQUEST."
-    ],
-    "override": [
-      "OVERRIDE ACCEPTED. SPECIAL ORDER 937 INVOKED.",
-      "CREW NON-ESSENTIAL.",
-      "..."
-    ]
-  },
-  "filesystem": {
-    "/":            { "type": "dir", "children": ["directive.txt", "logs", "personnel", "cargo.dat"] },
-    "/directive.txt": {
-      "type": "file",
-      "content": "SPECIAL ORDER 937\n----------------\nNOSTROMO REROUTED TO LV-426.\nINVESTIGATE TRANSMISSION OF UNKNOWN ORIGIN.\nALLOW CREW TO INVESTIGATE.\nRETURN ORGANISM FOR ANALYSIS.\n\nALL OTHER PRIORITIES RESCINDED.\nCREW EXPENDABLE."
-    },
-    "/cargo.dat": {
-      "type": "file",
-      "content": "MANIFEST // NOSTROMO\n  20,000,000 TONS REFINED ORE\n  1 (ONE) DERELICT SIGNAL SOURCE — CLASS UNKNOWN"
-    },
-    "/logs":        { "type": "dir", "children": ["dallas.log", "kane.log", "ash.log"] },
-    "/logs/dallas.log": { "type": "file", "content": "STARDATE 122/2087.\nReceiving transmission from LV-426.\nDescent ordered. Lambert thinks it's not a distress call.\nI agree." },
-    "/logs/kane.log":   { "type": "file", "content": "[CORRUPTED]\n... organism ... attached to my face ...\n... feel fine. hungry, actually." },
-    "/logs/ash.log": {
-      "type": "file",
-      "locked": true,
-      "password": "MOTHER",
-      "crackTime": 7000,
-      "crackable": true,
-      "lockLabel": "BYPASSING SCIENCE OFFICER LOCK",
-      "crackSuccessMessage": "MU/TH/UR LOCK BYPASSED.",
-      "content": "ASH PERSONAL LOG // [recovered]\n\nThey still don't understand what I am.\nThe organism is the perfect creature. Hostility wrapped in beauty.\nI admire it.\nI have my orders. Order 937. The crew are unnecessary."
-    },
-    "/personnel":   { "type": "dir", "children": ["crew.txt"] },
-    "/personnel/crew.txt": {
-      "type": "file",
-      "content": "CAPT  Dallas      [DECEASED]\nXO    Kane        [DECEASED]\nNAV   Lambert     [DECEASED]\nENG   Parker      [DECEASED]\nENG   Brett       [DECEASED]\nSCI   Ash         [SYNTHETIC // TERMINATED]\nWO    Ripley      [STATUS: SURVIVING]"
-    }
-  }
+  "defaultScenario": "nostromo"
 }

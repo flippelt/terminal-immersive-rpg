@@ -1,0 +1,60 @@
+{
+  "id": "horizon-lance",
+  "name": "Iskandar Lance — Hercynian disturbance",
+  "motd": [
+    "// Union Administrative Notice //",
+    "All Lancer activity logged for the Third Committee.",
+    "Cleared to interface. Try: `cat orders.txt`, `ls mech`",
+    ""
+  ],
+  "commands": {
+    "status": [
+      "MECH STATUS — ENKIDU-class // hull integrity 87%",
+      "  HEAT       ▓▓▓░░░░░░░  3 / 10",
+      "  STRUCTURE  ████░       4 / 4",
+      "  STRESS     ████░       4 / 4",
+      "  CORE       READY  [ press `core` to deploy ]"
+    ],
+    "core": [
+      "CORE POWER ENGAGED.",
+      "AUTHORIZED. RECOMMEND CAUTION.",
+      "Pilot, you know what to do."
+    ],
+    "hail": [
+      "OPENING OMNINET CHANNEL...",
+      "[static]",
+      "...this is Union Operator 9. go ahead, lance."
+    ]
+  },
+  "filesystem": {
+    "/":             { "type": "dir", "children": ["orders.txt", "mech", "logs", "intel"] },
+    "/orders.txt": {
+      "type": "file",
+      "content": "PRIORITY GREEN — Union Administrative\n----------------------------------------\nSubject:  Hercynian disturbance, sector 7-G\nLance:    Iskandar Lance, callsign HORIZON\nMission:  Cold landing. Investigate. Do not engage SecComm assets.\n\nAuthorization: Field Officer Karrakin.\nBe a Lancer. Walk a thousand miles. Strike like lightning."
+    },
+    "/mech":         { "type": "dir", "children": ["enkidu.frame", "loadout.txt"] },
+    "/mech/enkidu.frame": {
+      "type": "file",
+      "content": "FRAME // GMS ENKIDU\nROLE   // STRIKER\nMOUNTS // MAIN, FLEX, HEAVY\nCORE   // OVERCHARGE PROTOCOL"
+    },
+    "/mech/loadout.txt": {
+      "type": "file",
+      "content": "MAIN   :: Anti-Materiel Rifle\nFLEX   :: Assault Rifle\nHEAVY  :: Charged Blade\nSYSTEMS:: Personalizations, Comp/Con (this), Heatsink"
+    },
+    "/logs":         { "type": "dir", "children": ["last-drop.log"] },
+    "/logs/last-drop.log": {
+      "type": "file",
+      "content": "DROP -1.4h\nEntry profile nominal. Lance comms clean.\nPilot stress within tolerance.\n[pause]\nI am glad you are alive."
+    },
+    "/intel":        { "type": "dir", "children": ["secomm.dat"] },
+    "/intel/secomm.dat": {
+      "type": "file",
+      "locked": true,
+      "password": "HORIZON-7G",
+      "crackTime": 5000,
+      "crackable": true,
+      "crackSuccessMessage": "comp/con: clearance fabricated. union won't like this.",
+      "content": "SECCOMM INTERNAL // PRIORITY BLACK\n----------------------------------------\nSubject:   Karrakin field officer corruption\nLance dispatched as deniable asset.\nIf compromised, deny all knowledge.\n\n[comp/con annotation:]\n   pilot — they were never going to bring you home.\n   i am sorry."
+    }
+  }
+}

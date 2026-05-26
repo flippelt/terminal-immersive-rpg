@@ -1,9 +1,15 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Terminal from './components/Terminal.jsx'
 import ThemeSwitcher from './components/ThemeSwitcher.jsx'
 import AudioToggle from './components/AudioToggle.jsx'
 import { setVolume as setAudioVolume } from './audio/sfx.js'
-import { THEMES, DEFAULT_THEME, THEME_BY_ID, IS_DEMO } from './themes/index.js'
+import {
+  THEMES,
+  DEFAULT_THEME,
+  THEME_BY_ID,
+  IS_DEMO,
+  composeTheme
+} from './themes/index.js'
 
 const LS_KEY = 'tirpg.theme'
 
@@ -21,21 +27,45 @@ function applyThemeCssVars(theme) {
   root.style.setProperty('--glow', theme.crt?.glow ?? '6px')
 }
 
+function initialSelection() {
+  const params = new URLSearchParams(window.location.search)
+  const urlTheme = params.get('theme')
+  const urlScenario = params.get('scenario')
+  const saved = localStorage.getItem(LS_KEY)
+  const themeId =
+    (urlTheme && THEME_BY_ID[urlTheme]?.id) ||
+    (saved && THEME_BY_ID[saved]?.id) ||
+    DEFAULT_THEME.id
+  // null scenario -> composeTheme falls back to the theme's defaultScenario.
+  return { themeId, scenarioId: urlScenario || null }
+}
+
 export default function App() {
-  const [theme, setTheme] = useState(() => {
-    const saved = localStorage.getItem(LS_KEY)
-    return THEME_BY_ID[saved] ?? DEFAULT_THEME
-  })
+  const [sel, setSel] = useState(initialSelection)
   // GM mode is session-only by design — don't persist (default off each load).
   const [gmMode, setGmMode] = useState(false)
 
-  // Restore audio volume from localStorage once on mount.
+  const theme = useMemo(
+    () => composeTheme(sel.themeId, sel.scenarioId),
+    [sel]
+  )
+
+  const setTheme = useCallback((themeSkin) => {
+    // Switching theme resets to that theme's default scenario.
+    setSel({ themeId: themeSkin.id, scenarioId: null })
+  }, [])
+
+  const switchScenario = useCallback((scenarioId) => {
+    setSel((s) => ({ ...s, scenarioId }))
+  }, [])
+
+  const toggleGm = useCallback(() => setGmMode((m) => !m), [])
+
+  // Restore audio volume once on mount.
   useEffect(() => {
     const stored = parseFloat(localStorage.getItem('tirpg.volume') ?? '0.4')
     setAudioVolume(Number.isFinite(stored) ? stored : 0.4)
   }, [])
-
-  const toggleGm = useCallback(() => setGmMode((m) => !m), [])
 
   useEffect(() => {
     applyThemeCssVars(theme)
@@ -71,16 +101,13 @@ export default function App() {
           theme={theme}
           themes={THEMES}
           onSwitchTheme={setTheme}
+          onSwitchScenario={switchScenario}
           gmMode={gmMode}
           onToggleGm={toggleGm}
         />
         <div className="crt__vignette" />
       </div>
-      <ThemeSwitcher
-        themes={THEMES}
-        current={theme.id}
-        onSelect={setTheme}
-      />
+      <ThemeSwitcher themes={THEMES} current={theme.id} onSelect={setTheme} />
       <AudioToggle />
     </div>
   )
