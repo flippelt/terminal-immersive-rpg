@@ -48,6 +48,8 @@ export default function Terminal({
   const [unlocked, setUnlocked] = useState(() => new Set())
   const [modal, setModal] = useState(null) // { kind:'decrypt'|'crack', path, node }
   const [crackAttempts, setCrackAttempts] = useState(() => new Map())
+  const [authed, setAuthed] = useState(true)
+  const [loginTries, setLoginTries] = useState(0)
   const scrollRef = useRef(null)
 
   // Keep a live ref to history so `advance` always reads the latest array
@@ -63,12 +65,24 @@ export default function Terminal({
     setUnlocked(loadProgress(theme))
     setModal(null)
     setCrackAttempts(new Map())
+    const needsLogin = !!theme.login
+    setAuthed(!needsLogin)
+    setLoginTries(0)
     const boot = (theme.boot ?? []).map(toLine)
     const banner = theme.banner
       ? [toLine({ text: theme.banner, type: 'banner' })]
       : []
-    const motd = (theme.motd ?? []).map((t) => toLine({ text: t }))
-    setHistory([...boot, ...banner, ...motd, toLine({ text: '', instant: true })])
+    // Behind a login gate the motd is withheld until the player authenticates.
+    const tail = needsLogin
+      ? [
+          toLine({ text: theme.login.title ?? 'AUTHENTICATION REQUIRED', type: 'ok' }),
+          toLine({ text: '', instant: true })
+        ]
+      : [
+          ...(theme.motd ?? []).map((t) => toLine({ text: t })),
+          toLine({ text: '', instant: true })
+        ]
+    setHistory([...boot, ...banner, ...tail])
     playWhoosh(theme.sounds?.whoosh)
   }, [theme, bootSeq])
 
@@ -136,6 +150,27 @@ export default function Terminal({
     setUnlocked(new Set())
     setBootSeq((n) => n + 1)
   }, [])
+
+  const handleLogin = useCallback(
+    (value) => {
+      const login = themeRef.current.login
+      if (login && value === login.password) {
+        setAuthed(true)
+        push([
+          { text: login.granted ?? 'ACCESS GRANTED', type: 'ok' },
+          ...(themeRef.current.motd ?? []).map((t) => ({ text: t })),
+          { text: '', instant: true }
+        ])
+      } else {
+        setLoginTries((n) => n + 1)
+        push([
+          { text: login?.denied ?? 'ACCESS DENIED', type: 'err' },
+          { text: '', instant: true }
+        ])
+      }
+    },
+    [push]
+  )
 
   const openPasswordPrompt = useCallback((path, node) => {
     setModal({ kind: 'decrypt', path, node })
@@ -261,7 +296,7 @@ export default function Terminal({
             />
           )
         })}
-        {inputReady && !modal && (
+        {inputReady && !modal && authed && (
           <Prompt
             sigil={theme.prompt ?? '$'}
             cwd={cwd}
@@ -272,6 +307,17 @@ export default function Terminal({
           />
         )}
       </div>
+      {inputReady && !authed && theme.login && (
+        <InputModal
+          key={loginTries}
+          title={theme.login.title ?? 'AUTHENTICATION REQUIRED'}
+          label={theme.login.label ?? 'access code:'}
+          inputType="password"
+          hint="enter to authenticate"
+          onSubmit={handleLogin}
+          onCancel={() => {}}
+        />
+      )}
       {modal && (
         <InputModal
           title={`${modal.kind === 'crack' ? 'CRACK' : 'DECRYPT'} // ${modal.path}`}
