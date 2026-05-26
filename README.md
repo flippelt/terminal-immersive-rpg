@@ -183,6 +183,20 @@ Diretórios são inferidos da árvore. O cenário aparece automaticamente em
 Um cenário pode sobrescrever `boot`, `user`, `header`, `prompt` e `locks` do
 tema. `type` de linha: `normal` · `ok` · `err` · `muted` · `user`.
 
+**Login (opcional):** um cenário pode exigir autenticação antes de liberar o
+terminal — abre um diálogo mascarado após o boot, e o `motd` só aparece depois
+do acesso concedido.
+
+```jsonc
+"login": {
+  "title": "HALDEN CYBERNETICS // AUTHORIZED USERS ONLY",
+  "label": "password:",
+  "password": "HALDEN",
+  "granted": "Welcome back, Dr. Halden.",
+  "denied": "ACCESS DENIED."
+}
+```
+
 ### Arquivos do terminal
 
 - **Arquivo aberto** = só o texto. Crie `files/nota.txt` com o conteúdo.

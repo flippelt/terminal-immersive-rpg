@@ -1,6 +1,13 @@
 {
   "id": "workstation",
   "name": "Dr. Halden's workstation",
+  "login": {
+    "title": "HALDEN CYBERNETICS // AUTHORIZED USERS ONLY",
+    "label": "password (owner's surname):",
+    "password": "HALDEN",
+    "granted": "Welcome back, Dr. Halden.",
+    "denied": "ACCESS DENIED. attempt logged."
+  },
   "motd": [
     "PC-DOS 3.30  —  (C) IBM Corp 1981, 1987",
     "last user: HALDEN, E.  //  last login: [date corrupted]",
