@@ -244,6 +244,11 @@
   color: transparent;
 }
 
+.completion-hints {
+  opacity: 0.7;
+  white-space: pre-wrap;
+}
+
 .cursor--inline {
   display: inline-block;
   min-width: 1ch;

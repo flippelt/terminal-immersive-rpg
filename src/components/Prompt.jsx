@@ -6,10 +6,11 @@ import { playKeystroke } from '../audio/sfx.js'
 // - The visible text is rendered by us, so the cursor can be a true
 //   inline block at the caret position — moves with typing AND with
 //   ArrowLeft/Right within the line.
-export default function Prompt({ sigil, cwd, onSubmit, history, sounds }) {
+export default function Prompt({ sigil, cwd, onSubmit, history, sounds, complete }) {
   const [value, setValue] = useState('')
   const [caret, setCaret] = useState(0)
   const [histIdx, setHistIdx] = useState(history.length)
+  const [hints, setHints] = useState([])
   const inputRef = useRef(null)
 
   useEffect(() => {
@@ -38,6 +39,16 @@ export default function Prompt({ sigil, cwd, onSubmit, history, sounds }) {
   }
 
   const onKey = (e) => {
+    if (e.key === 'Tab') {
+      e.preventDefault()
+      if (complete) {
+        const { value: nv, list } = complete(value)
+        setBoth(nv)
+        setHints(list.length > 1 ? list : [])
+      }
+      return
+    }
+    if (hints.length) setHints([])
     if (e.key === 'Enter') {
       e.preventDefault()
       onSubmit(value)
@@ -86,29 +97,34 @@ export default function Prompt({ sigil, cwd, onSubmit, history, sounds }) {
   const after = value.slice(caret + 1)
 
   return (
-    <div className="prompt-line" onClick={() => inputRef.current?.focus()}>
-      <span className="prompt-line__sigil">
-        {sigil} {cwd === '/' ? '/' : cwd}{' '}
-        <span style={{ opacity: 0.7 }}>&gt;</span>
-      </span>
-      <span className="prompt-line__text">
-        {before}
-        <span className="cursor cursor--inline">{atChar}</span>
-        {after}
-      </span>
-      <input
-        ref={inputRef}
-        className="prompt-line__capture"
-        value={value}
-        onChange={onChange}
-        onKeyDown={onKey}
-        onKeyUp={syncCaret}
-        onSelect={syncCaret}
-        autoComplete="off"
-        autoCapitalize="off"
-        spellCheck={false}
-        aria-label="terminal input"
-      />
-    </div>
+    <>
+      <div className="prompt-line" onClick={() => inputRef.current?.focus()}>
+        <span className="prompt-line__sigil">
+          {sigil} {cwd === '/' ? '/' : cwd}{' '}
+          <span style={{ opacity: 0.7 }}>&gt;</span>
+        </span>
+        <span className="prompt-line__text">
+          {before}
+          <span className="cursor cursor--inline">{atChar}</span>
+          {after}
+        </span>
+        <input
+          ref={inputRef}
+          className="prompt-line__capture"
+          value={value}
+          onChange={onChange}
+          onKeyDown={onKey}
+          onKeyUp={syncCaret}
+          onSelect={syncCaret}
+          autoComplete="off"
+          autoCapitalize="off"
+          spellCheck={false}
+          aria-label="terminal input"
+        />
+      </div>
+      {hints.length > 1 && (
+        <p className="line line--muted completion-hints">{hints.join('   ')}</p>
+      )}
+    </>
   )
 }
