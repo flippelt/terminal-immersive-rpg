@@ -28,6 +28,8 @@ export default function App() {
   useEffect(() => {
     applyThemeCssVars(theme)
     localStorage.setItem(LS_KEY, theme.id)
+    const prefix = IS_DEMO ? '[DEMO] ' : ''
+    document.title = `${prefix}${theme.header ?? theme.name ?? 'Terminal // RPG'}`
   }, [theme])
 
   return (
