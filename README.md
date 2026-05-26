@@ -23,6 +23,16 @@ npm run build
 # saída em ./dist
 ```
 
+### GitHub Pages (automático)
+
+`main` é deployada automaticamente em
+[**flippelt.github.io/terminal-immersive-rpg**](https://flippelt.github.io/terminal-immersive-rpg/)
+via [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) a cada push.
+
+`vite.config.js` ajusta `base` automaticamente:
+- `npm run dev` → `/` (localhost)
+- `npm run build` → `/terminal-immersive-rpg/` (Pages)
+
 ## Como usar na mesa
 
 - O switcher embaixo da tela troca de sistema (também via comando `theme <id>`).
