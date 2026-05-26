@@ -1,6 +1,14 @@
 {
   "id": "heimdall",
   "name": "Case 4127-A — Project HEIMDALL",
+  "events": {
+    "/blackbox.dat": [
+      { "text": ">>> UNAUTHORIZED READ DETECTED", "type": "err" },
+      { "text": ">>> INTERNAL AFFAIRS TRACE INITIATED", "type": "err" },
+      { "type": "countdown", "from": 5, "interval": 700, "label": "TRACE COMPLETE IN", "alarm": true },
+      { "text": ">>> your station is flagged. log off. now.", "type": "err" }
+    ]
+  },
   "motd": [
     "// NetWatch Agent Console — Night City Subnet //",
     "Active case: 4127-A — illegal incursion, Arasaka Tower",

@@ -134,6 +134,14 @@ describe('buildDecryptLines', () => {
     expect(unlock).toHaveBeenCalledWith('/secret.dat')
     expect(out.some((l) => l.text?.includes('FISH'))).toBe(true)
   })
+  it('appends onUnlock event lines from theme.events', () => {
+    const themeWithEvents = {
+      locks: {},
+      events: { '/secret.dat': [{ text: 'ALARM', type: 'err' }] }
+    }
+    const out = buildDecryptLines(themeWithEvents, '/secret.dat', fs['/secret.dat'], 'SWORD', vi.fn(), fs)
+    expect(out.some((l) => l.text === 'ALARM')).toBe(true)
+  })
 })
 
 describe('grep / find', () => {

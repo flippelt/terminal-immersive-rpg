@@ -231,6 +231,20 @@ Valores do front-matter coagem pra boolean/número automaticamente; use aspas
 pra forçar string (ex.: senha numérica `password: "12345"`). `reveals` aceita
 vários paths separados por vírgula.
 
+**Eventos ao destrancar (`events`):** no `scenario.json`, mapeie um path pra
+uma lista de linhas que tocam quando aquele arquivo é destrancado (crack ou
+decrypt). Pode incluir qualquer tipo de linha — texto, `progress`, `countdown`.
+
+```jsonc
+"events": {
+  "/blackbox.dat": [
+    { "text": ">>> TRACE INITIATED", "type": "err" },
+    { "type": "countdown", "from": 5, "label": "TRACE IN", "alarm": true },
+    { "text": ">>> you are flagged.", "type": "err" }
+  ]
+}
+```
+
 Desbloqueios duram até `reboot` ou troca de tema. `ls` marca `[LOCKED]`.
 
 ---

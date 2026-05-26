@@ -435,6 +435,15 @@ function buildRevealLines(fs, node) {
   return out
 }
 
+// onUnlock triggers: a scenario may map a path to a list of lines (in
+// theme.events) that play right after the file opens — an alarm, a
+// villain's message, even a `countdown`. Turns unlocking into an event.
+function buildEventLines(theme, path) {
+  const ev = theme.events?.[path]
+  if (!Array.isArray(ev)) return []
+  return ev.map((l) => (typeof l === 'string' ? { text: l } : l))
+}
+
 // The brute-force success sequence. Used by the plain crack flow and by
 // the difficulty-check flow (after the roll passes, in Terminal).
 export function buildCrackLines(theme, path, node, unlock, fs) {
@@ -446,7 +455,8 @@ export function buildCrackLines(theme, path, node, unlock, fs) {
     { type: 'progress', duration, label, onComplete: () => unlock(path) },
     { text: success, type: 'ok' },
     { text: `you can now run \`cat ${path}\`.`, type: 'muted' },
-    ...buildRevealLines(fs, node)
+    ...buildRevealLines(fs, node),
+    ...buildEventLines(theme, path)
   ]
 }
 
@@ -470,7 +480,8 @@ export function buildDecryptLines(theme, path, node, key, unlock, fs) {
       onComplete: () => unlock(path)
     },
     { text: `${path} decrypted.`, type: 'ok' },
-    ...buildRevealLines(fs, node)
+    ...buildRevealLines(fs, node),
+    ...buildEventLines(theme, path)
   ]
 }
 
