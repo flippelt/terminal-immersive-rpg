@@ -1,5 +1,7 @@
 # Terminal Immersivo para RPG
 
+### → [**LIVE DEMO**](https://flippelt.github.io/terminal-immersive-rpg/demo/) ←
+
 Site que simula um terminal de console (estilo *cool-retro-term*) com skins
 trocáveis para sistemas de RPG: **Alien (MU/TH/UR)**, **Lancer (COMP/CON)**,
 **Blade Runner (Esper)** e **Warhammer 40K (Cogitator)**.
@@ -25,13 +27,12 @@ npm run build
 
 ### GitHub Pages (automático)
 
-A cada push em `main`, dois sites são publicados via
-[`.github/workflows/deploy.yml`](.github/workflows/deploy.yml):
+A cada push em `main`, o site é publicado via
+[`.github/workflows/deploy.yml`](.github/workflows/deploy.yml). Existem duas
+saídas:
 
-| URL | Conteúdo |
-|---|---|
-| [flippelt.github.io/terminal-immersive-rpg](https://flippelt.github.io/terminal-immersive-rpg/) | versão completa (4 temas) |
-| [flippelt.github.io/terminal-immersive-rpg/demo](https://flippelt.github.io/terminal-immersive-rpg/demo/) | demo público curado (sem WH40K), com badge `DEMO` no canto |
+- versão completa (4 temas) — não linkada aqui, é a build interna
+- [**demo público**](https://flippelt.github.io/terminal-immersive-rpg/demo/) — curado (sem WH40K), com badge `DEMO` no canto
 
 `vite.config.js` define o `base` por modo:
 - `npm run dev` → `/` (localhost)
