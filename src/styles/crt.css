@@ -161,9 +161,28 @@
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
   z-index: 6;
   font-size: 0.7em;
+}
+
+.theme-switcher__trigger {
+  text-transform: lowercase;
+  letter-spacing: 1px;
+}
+
+.theme-switcher__menu {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  max-width: min(80vw, 640px);
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--fg) 40%, transparent);
+  background: color-mix(in srgb, var(--bg, #000) 88%, transparent);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--fg) 18%, transparent);
 }
 
 .switcher-chip {
@@ -428,10 +447,11 @@
 
   .theme-switcher {
     bottom: 6px;
+  }
+
+  .theme-switcher__menu {
+    max-width: 92vw;
     gap: 4px;
-    flex-wrap: wrap;
-    justify-content: center;
-    max-width: calc(100% - 90px); /* leave room for the audio toggle */
   }
 
   .theme-switcher button {

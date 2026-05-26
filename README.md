@@ -79,7 +79,8 @@ Runner, `pipboy`/`rads` no Fallout, `trace`/`deploy` no Cyberpunk).
 **Atalhos e UI:**
 
 - ↑/↓ navegam o histórico · **Tab** completa comandos e nomes de arquivo · `Ctrl+L` limpa a tela.
-- Switcher de tema embaixo · toggle de áudio no canto inferior direito.
+- Switcher de tema embaixo (botão `▴ <sistema>` que abre o menu) · toggle de
+  áudio no canto inferior direito.
 - **`Ctrl+Shift+G`** (ou o comando `gm`) liga o **Modo Mestre**: arquivos
   trancados mostram a senha no `ls` e o conteúdo no `cat`, sem afetar o que os
   jogadores veem. Sessão-only (reseta ao recarregar). No Modo Mestre, cada
