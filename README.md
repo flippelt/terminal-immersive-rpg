@@ -67,6 +67,7 @@ A lista de temas que aparecem no demo fica em `DEMO_IDS` em
 |---|---|
 | `help` | lista de comandos |
 | `ls [path]` · `cd <path>` · `cat <file>` · `pwd` | navegação no filesystem |
+| `grep <termo> [path]` · `find <nome>` | busca conteúdo / nomes de arquivo |
 | `crack <file>` | força bruta em arquivo trancado (barra de progresso) |
 | `decrypt <file> [key]` | desbloqueia por senha; sem `key` abre um modal |
 | `theme [id]` | troca de sistema |
@@ -87,7 +88,8 @@ Runner, `pipboy`/`rads` no Fallout, `trace`/`deploy` no Cyberpunk).
   jogadores veem. Sessão-only (reseta ao recarregar). No Modo Mestre, cada
   sistema no switcher ganha um `×`/`+` pra **desativar/ativar o tema para os
   jogadores** — temas desativados somem do switcher fora do Modo Mestre (a
-  escolha fica salva).
+  escolha fica salva). O comando `gmsheet` (só no Modo Mestre) despeja todos os
+  arquivos trancados do cenário com senha/DC pra prep rápida.
 
 **Carregar uma campanha direto por URL** (útil pra bookmark do GM):
 

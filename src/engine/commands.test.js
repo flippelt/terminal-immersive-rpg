@@ -136,6 +136,38 @@ describe('buildDecryptLines', () => {
   })
 })
 
+describe('grep / find', () => {
+  it('greps file contents and skips locked files for players', () => {
+    const out = runCommand('grep organism', makeCtx())
+    // note.txt has no "organism"; secret.dat is locked -> reported as hidden
+    expect(out.some((l) => l.text?.includes('locked file'))).toBe(false)
+  })
+  it('greps a plain hit', () => {
+    const out = runCommand('grep one', makeCtx())
+    expect(out.some((l) => l.text?.startsWith('/note.txt:'))).toBe(true)
+  })
+  it('finds files by name', () => {
+    const out = runCommand('find note', makeCtx())
+    expect(out[0].text).toBe('/note.txt')
+  })
+  it('find marks locked files', () => {
+    const out = runCommand('find secret', makeCtx())
+    expect(out[0].text).toContain('[LOCKED]')
+  })
+})
+
+describe('gmsheet', () => {
+  it('requires GM mode', () => {
+    const out = runCommand('gmsheet', makeCtx())
+    expect(out[0].type).toBe('err')
+  })
+  it('lists locked files with their secrets in GM mode', () => {
+    const out = runCommand('gmsheet', makeCtx({ gmMode: true }))
+    expect(out.some((l) => l.text.includes('/secret.dat') && l.text.includes('pwd:SWORD'))).toBe(true)
+    expect(out.some((l) => l.text.includes('reveals:/next.dat'))).toBe(true)
+  })
+})
+
 describe('cd', () => {
   it('rejects a non-directory', () => {
     const out = runCommand('cd note.txt', makeCtx())

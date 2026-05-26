@@ -23,6 +23,8 @@ const help = (extra = []) => [
   { text: '  ls [path]             list directory' },
   { text: '  cd <path>             change directory' },
   { text: '  cat <file>            print file contents' },
+  { text: '  grep <term> [path]    search file contents' },
+  { text: '  find <name>           search filenames' },
   { text: '  pwd                   working directory' },
   { text: '  whoami                current operator' },
   { text: '  date                  system clock' },
@@ -219,6 +221,80 @@ const COMMANDS = {
     audioSetVolume(n / 100)
     localStorage.setItem('tirpg.volume', String(n / 100))
     return [{ text: `volume: ${n}%`, type: 'ok' }]
+  },
+
+  grep: (ctx) => {
+    const term = ctx.args[0]
+    if (!term) return [{ text: 'grep: usage: grep <term> [path]', type: 'err' }]
+    const scope = ctx.args[1] ? normalizePath(ctx.cwd, ctx.args[1]) : '/'
+    const inScope = (p) => scope === '/' || p === scope || p.startsWith(scope + '/')
+    const needle = term.toLowerCase()
+    const out = []
+    let lockedSkipped = 0
+    for (const [p, node] of Object.entries(ctx.fs)) {
+      if (node?.type !== 'file' || !inScope(p)) continue
+      const locked = node.locked && !ctx.unlocked?.has(p)
+      if (locked && !ctx.gmMode) {
+        if ((node.content ?? '').toLowerCase().includes(needle)) lockedSkipped++
+        continue
+      }
+      for (const line of (node.content ?? '').split('\n')) {
+        if (line.toLowerCase().includes(needle)) {
+          out.push({ text: `${p}: ${line.trim()}` })
+        }
+      }
+    }
+    if (out.length === 0 && lockedSkipped === 0)
+      return [{ text: `grep: no matches for "${term}"`, type: 'muted' }]
+    if (lockedSkipped > 0)
+      out.push({ text: `grep: ${lockedSkipped} match(es) inside locked file(s)`, type: 'muted' })
+    return out
+  },
+
+  find: (ctx) => {
+    const pat = ctx.args[0]
+    if (!pat) return [{ text: 'find: usage: find <name>', type: 'err' }]
+    const needle = pat.toLowerCase()
+    const out = []
+    for (const [p, node] of Object.entries(ctx.fs)) {
+      if (p === '/') continue
+      const name = p.split('/').pop()
+      if (name.toLowerCase().includes(needle)) {
+        const locked = node.locked && !ctx.unlocked?.has(p)
+        out.push({
+          text: node.type === 'dir' ? `${p}/` : locked ? `${p} [LOCKED]` : p,
+          type: node.type === 'dir' ? 'ok' : locked ? 'muted' : 'normal'
+        })
+      }
+    }
+    return out.length
+      ? out.sort((a, b) => a.text.localeCompare(b.text))
+      : [{ text: `find: no files matching "${pat}"`, type: 'muted' }]
+  },
+
+  // Hidden — GM prep dump of every locked file's secrets. GM mode only.
+  gmsheet: (ctx) => {
+    if (!ctx.gmMode)
+      return [{ text: 'gmsheet: GM mode required (Ctrl+Shift+G)', type: 'err' }]
+    const locked = Object.entries(ctx.fs).filter(
+      ([, n]) => n?.type === 'file' && n.locked
+    )
+    const out = [
+      { text: `★ GM SHEET // ${ctx.theme.scenarioName ?? ctx.theme.scenarioId ?? ctx.theme.name}`, type: 'ok' }
+    ]
+    if (locked.length === 0) {
+      out.push({ text: '  (no locked files in this scenario)', type: 'muted' })
+      return out
+    }
+    for (const [p, n] of locked.sort((a, b) => a[0].localeCompare(b[0]))) {
+      const parts = []
+      if (n.password) parts.push(`pwd:${n.password}`)
+      if (n.crackDC != null) parts.push(`DC:${n.crackDC}`)
+      if (n.crackable === false) parts.push('nocrack')
+      if (n.reveals) parts.push(`reveals:${n.reveals}`)
+      out.push({ text: `  ${p}  [${parts.join(' ')}]`, type: 'muted' })
+    }
+    return out
   },
 
   // Hidden — toggles GM mode. Not in `help`. Same as Ctrl+Shift+G.
