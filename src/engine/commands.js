@@ -85,6 +85,7 @@ const COMMANDS = {
         if (ctx.gmMode) {
           const parts = ['LOCKED']
           if (child.password) parts.push(`pwd:${child.password}`)
+          if (child.crackDC != null) parts.push(`DC:${child.crackDC}`)
           if (child.crackable === false) parts.push('nocrack')
           suffix = ` [${parts.join(' ')}]`
         } else {
@@ -120,6 +121,7 @@ const COMMANDS = {
       if (ctx.gmMode) {
         const meta = []
         if (node.password) meta.push(`pwd:${node.password}`)
+        if (node.crackDC != null) meta.push(`DC:${node.crackDC}`)
         if (node.crackable === false) meta.push('nocrack')
         return [
           {
@@ -252,23 +254,23 @@ const COMMANDS = {
         'crack: encryption hardened — password required.'
       return [{ text: msg, type: 'err' }]
     }
-    const duration = node.crackTime ?? ctx.theme.locks?.crackDefault ?? 5000
-    const label =
-      node.lockLabel ?? ctx.theme.locks?.crackLabel ?? 'BRUTE-FORCING'
-    const success =
-      node.crackSuccessMessage ?? `ACCESS GRANTED — ${path}`
-    return [
-      { text: `initiating attack on ${path}...`, type: 'muted' },
-      {
-        type: 'progress',
-        duration,
-        label,
-        onComplete: () => ctx.unlock(path)
-      },
-      { text: success, type: 'ok' },
-      { text: `you can now run \`cat ${path}\`.`, type: 'muted' },
-      ...buildRevealLines(ctx.fs, node)
-    ]
+    // Difficulty check: GM set a crackDC. Player rolls and enters the
+    // result in a dialog; the modal handler in Terminal does the compare.
+    if (node.crackDC != null) {
+      const max = node.crackAttempts ?? 3
+      const used = ctx.crackAttempts?.get(path) ?? 0
+      if (used >= max) {
+        return [
+          { text: `crack: ${path}: brute-force locked out`, type: 'err' },
+          { text: 'too many failed attempts — password required (`decrypt`)', type: 'muted' }
+        ]
+      }
+      ctx.openCrackPrompt?.(path, node)
+      return [
+        { text: `${path} — brute-force protected. enter your roll.`, type: 'muted' }
+      ]
+    }
+    return buildCrackLines(ctx.theme, path, node, ctx.unlock, ctx.fs)
   },
 
   decrypt: (ctx) => {
@@ -322,6 +324,21 @@ function buildRevealLines(fs, node) {
     }
   }
   return out
+}
+
+// The brute-force success sequence. Used by the plain crack flow and by
+// the difficulty-check flow (after the roll passes, in Terminal).
+export function buildCrackLines(theme, path, node, unlock, fs) {
+  const duration = node.crackTime ?? theme.locks?.crackDefault ?? 5000
+  const label = node.lockLabel ?? theme.locks?.crackLabel ?? 'BRUTE-FORCING'
+  const success = node.crackSuccessMessage ?? `ACCESS GRANTED — ${path}`
+  return [
+    { text: `initiating attack on ${path}...`, type: 'muted' },
+    { type: 'progress', duration, label, onComplete: () => unlock(path) },
+    { text: success, type: 'ok' },
+    { text: `you can now run \`cat ${path}\`.`, type: 'muted' },
+    ...buildRevealLines(fs, node)
+  ]
 }
 
 // Shared between the inline (commands.js) and modal (Terminal.jsx) flows.

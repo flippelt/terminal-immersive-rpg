@@ -2,6 +2,8 @@
 locked: true
 password: HORIZON-7G
 crackTime: 5000
+crackDC: 12
+crackAttempts: 3
 crackable: true
 crackSuccessMessage: comp/con: clearance fabricated. union won't like this.
 ---

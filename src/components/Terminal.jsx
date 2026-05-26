@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import OutputLine from './OutputLine.jsx'
 import Prompt from './Prompt.jsx'
-import PasswordModal from './PasswordModal.jsx'
-import { runCommand, buildDecryptLines } from '../engine/commands.js'
+import InputModal from './InputModal.jsx'
+import { runCommand, buildDecryptLines, buildCrackLines } from '../engine/commands.js'
 import { complete } from '../engine/complete.js'
 import { playBeep, playWhoosh } from '../audio/sfx.js'
 import { scenarioIdsFor } from '../themes/index.js'
@@ -35,7 +35,8 @@ export default function Terminal({
   const [cmdHistory, setCmdHistory] = useState([])
   const [bootSeq, setBootSeq] = useState(0)
   const [unlocked, setUnlocked] = useState(() => new Set())
-  const [pwPrompt, setPwPrompt] = useState(null)
+  const [modal, setModal] = useState(null) // { kind:'decrypt'|'crack', path, node }
+  const [crackAttempts, setCrackAttempts] = useState(() => new Map())
   const scrollRef = useRef(null)
 
   // Keep a live ref to history so `advance` always reads the latest array
@@ -48,7 +49,8 @@ export default function Terminal({
     setAnimIdx(0)
     setCwd('/')
     setUnlocked(new Set())
-    setPwPrompt(null)
+    setModal(null)
+    setCrackAttempts(new Map())
     const boot = (theme.boot ?? []).map(toLine)
     const banner = theme.banner
       ? [toLine({ text: theme.banner, type: 'banner' })]
@@ -109,29 +111,65 @@ export default function Terminal({
   }, [])
 
   const openPasswordPrompt = useCallback((path, node) => {
-    setPwPrompt({ path, node })
+    setModal({ kind: 'decrypt', path, node })
   }, [])
 
-  const handlePasswordSubmit = useCallback(
-    (key) => {
-      if (!pwPrompt) return
-      const { path, node } = pwPrompt
-      setPwPrompt(null)
-      push([
-        ...buildDecryptLines(theme, path, node, key, unlock, theme.filesystem),
-        { text: '', instant: true }
-      ])
+  const openCrackPrompt = useCallback((path, node) => {
+    setModal({ kind: 'crack', path, node })
+  }, [])
+
+  const handleModalSubmit = useCallback(
+    (value) => {
+      if (!modal) return
+      const { kind, path, node } = modal
+      setModal(null)
+      if (kind === 'decrypt') {
+        push([
+          ...buildDecryptLines(theme, path, node, value, unlock, theme.filesystem),
+          { text: '', instant: true }
+        ])
+        return
+      }
+      // crack roll check
+      const dc = node.crackDC
+      const max = node.crackAttempts ?? 3
+      const roll = parseInt(value, 10)
+      if (!Number.isFinite(roll)) {
+        push([{ text: 'crack: enter a number', type: 'err' }, { text: '', instant: true }])
+        return
+      }
+      const dcNote = gmMode ? ` (DC ${dc})` : ''
+      if (roll > dc) {
+        push([
+          { text: `roll ${roll} — SUCCESS${dcNote}`, type: 'ok' },
+          ...buildCrackLines(theme, path, node, unlock, theme.filesystem),
+          { text: '', instant: true }
+        ])
+        return
+      }
+      const used = (crackAttempts.get(path) ?? 0) + 1
+      setCrackAttempts((m) => new Map(m).set(path, used))
+      const remaining = max - used
+      const lines = [{ text: `roll ${roll} — FAILED${dcNote}`, type: 'err' }]
+      lines.push(
+        remaining > 0
+          ? { text: `brute-force attempts left: ${remaining}`, type: 'muted' }
+          : { text: 'brute-force LOCKED OUT — password required (`decrypt`)', type: 'err' }
+      )
+      lines.push({ text: '', instant: true })
+      push(lines)
     },
-    [pwPrompt, push, theme, unlock]
+    [modal, push, theme, unlock, gmMode, crackAttempts]
   )
 
-  const handlePasswordCancel = useCallback(() => {
-    setPwPrompt(null)
+  const handleModalCancel = useCallback(() => {
+    const kind = modal?.kind ?? 'operation'
+    setModal(null)
     push([
-      { text: 'decrypt: cancelled.', type: 'muted' },
+      { text: `${kind}: cancelled.`, type: 'muted' },
       { text: '', instant: true }
     ])
-  }, [push])
+  }, [modal, push])
 
   const handleSubmit = useCallback(
     (raw) => {
@@ -152,6 +190,8 @@ export default function Terminal({
         unlocked,
         unlock,
         openPasswordPrompt,
+        openCrackPrompt,
+        crackAttempts,
         gmMode,
         toggleGm: onToggleGm,
         scenarioIds: scenarioIdsFor(theme.id),
@@ -160,7 +200,7 @@ export default function Terminal({
       if (out.length) push(out)
       push([{ text: '', instant: true }])
     },
-    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, openPasswordPrompt, gmMode, onToggleGm, onSwitchScenario]
+    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, openPasswordPrompt, openCrackPrompt, crackAttempts, gmMode, onToggleGm, onSwitchScenario]
   )
 
   const inputReady = animIdx >= history.length
@@ -193,7 +233,7 @@ export default function Terminal({
             />
           )
         })}
-        {inputReady && !pwPrompt && (
+        {inputReady && !modal && (
           <Prompt
             sigil={theme.prompt ?? '$'}
             cwd={cwd}
@@ -204,11 +244,13 @@ export default function Terminal({
           />
         )}
       </div>
-      {pwPrompt && (
-        <PasswordModal
-          filename={pwPrompt.path}
-          onSubmit={handlePasswordSubmit}
-          onCancel={handlePasswordCancel}
+      {modal && (
+        <InputModal
+          title={`${modal.kind === 'crack' ? 'CRACK' : 'DECRYPT'} // ${modal.path}`}
+          label={modal.kind === 'crack' ? 'enter your roll:' : 'enter key:'}
+          inputType={modal.kind === 'crack' ? 'number' : 'text'}
+          onSubmit={handleModalSubmit}
+          onCancel={handleModalCancel}
         />
       )}
     </>

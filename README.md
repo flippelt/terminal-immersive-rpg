@@ -186,10 +186,19 @@ lockLabel: BYPASSING ICE       # label da barra de crack
 decryptLabel: RESOLVING KEY
 crackSuccessMessage: ACCESS GRANTED.
 crackFailMessage: encryption too strong   # se crackable=false
+crackDC: 12                    # teste de dificuldade: crack abre um diálogo pedindo a rolagem
+crackAttempts: 3               # vidas antes do lockout (padrão 3)
 reveals: /cofre/outro.dat      # cadeia: ao destrancar, revela a senha de outro arquivo
 ---
 Conteúdo revelado após o desbloqueio.
 ```
+
+**Teste de dificuldade (`crackDC`)**: se um arquivo tem `crackDC`, o `crack`
+abre um diálogo pedindo o resultado da **rolagem do jogador** (um número). Se a
+rolagem for **maior** que o DC, o crack roda. Senão, falha e gasta uma das
+`crackAttempts` (padrão 3). Esgotadas as tentativas, o arquivo fica em
+**lockout** — só abre com a senha (`decrypt`). O DC fica oculto pros jogadores
+(visível só no Modo Mestre).
 
 Valores do front-matter coagem pra boolean/número automaticamente; use aspas
 pra forçar string (ex.: senha numérica `password: "12345"`). `reveals` aceita

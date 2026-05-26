@@ -89,6 +89,37 @@ describe('crack', () => {
   })
 })
 
+describe('crack with difficulty (crackDC)', () => {
+  const dcFs = {
+    '/': { type: 'dir', children: ['vault.dat'] },
+    '/vault.dat': {
+      type: 'file',
+      locked: true,
+      password: 'KEY',
+      crackable: true,
+      crackDC: 12,
+      crackAttempts: 3
+    }
+  }
+  it('opens the roll prompt instead of cracking directly', () => {
+    const openCrackPrompt = vi.fn()
+    const out = runCommand(
+      'crack vault.dat',
+      makeCtx({ fs: dcFs, openCrackPrompt, crackAttempts: new Map() })
+    )
+    expect(openCrackPrompt).toHaveBeenCalledWith('/vault.dat', dcFs['/vault.dat'])
+    expect(out.some((l) => l.type === 'progress')).toBe(false)
+  })
+  it('locks out crack after attempts are spent', () => {
+    const out = runCommand(
+      'crack vault.dat',
+      makeCtx({ fs: dcFs, crackAttempts: new Map([['/vault.dat', 3]]) })
+    )
+    expect(out[0].type).toBe('err')
+    expect(out[0].text).toContain('locked out')
+  })
+})
+
 describe('buildDecryptLines', () => {
   const theme = { locks: {} }
   it('rejects a wrong key', () => {
