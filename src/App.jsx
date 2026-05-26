@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Terminal from './components/Terminal.jsx'
 import ThemeSwitcher from './components/ThemeSwitcher.jsx'
 import { THEMES, DEFAULT_THEME, THEME_BY_ID, IS_DEMO } from './themes/index.js'
@@ -24,6 +24,10 @@ export default function App() {
     const saved = localStorage.getItem(LS_KEY)
     return THEME_BY_ID[saved] ?? DEFAULT_THEME
   })
+  // GM mode is session-only by design — don't persist (default off each load).
+  const [gmMode, setGmMode] = useState(false)
+
+  const toggleGm = useCallback(() => setGmMode((m) => !m), [])
 
   useEffect(() => {
     applyThemeCssVars(theme)
@@ -32,17 +36,36 @@ export default function App() {
     document.title = `${prefix}${theme.header ?? theme.name ?? 'Terminal // RPG'}`
   }, [theme])
 
+  // Hidden GM toggle: Ctrl+Shift+G. Also available via the `gm` command.
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.ctrlKey && e.shiftKey && (e.key === 'G' || e.key === 'g')) {
+        e.preventDefault()
+        toggleGm()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [toggleGm])
+
   return (
     <div className="crt">
       <div className="chrome">
         <span>{theme.header}</span>
         <span className="chrome__right">
+          {gmMode && <span className="chrome__gm">★ GM</span>}
           {IS_DEMO && <span className="chrome__demo">DEMO</span>}
           UPLINK · {new Date().getFullYear()}
         </span>
       </div>
       <div className="crt__screen">
-        <Terminal theme={theme} themes={THEMES} onSwitchTheme={setTheme} />
+        <Terminal
+          theme={theme}
+          themes={THEMES}
+          onSwitchTheme={setTheme}
+          gmMode={gmMode}
+          onToggleGm={toggleGm}
+        />
         <div className="crt__vignette" />
       </div>
       <ThemeSwitcher

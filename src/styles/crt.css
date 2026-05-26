@@ -146,6 +146,15 @@
   opacity: 0.85;
 }
 
+.chrome__gm {
+  border: 1px solid var(--accent, #88ff88);
+  color: var(--accent, #88ff88);
+  background: color-mix(in srgb, var(--accent, #88ff88) 15%, transparent);
+  padding: 1px 6px;
+  letter-spacing: 2px;
+  font-size: 0.85em;
+}
+
 .theme-switcher {
   position: absolute;
   bottom: 12px;

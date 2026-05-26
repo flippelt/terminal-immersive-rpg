@@ -18,7 +18,7 @@ const toLine = (l) => ({
   onComplete: l.onComplete
 })
 
-export default function Terminal({ theme, themes, onSwitchTheme }) {
+export default function Terminal({ theme, themes, onSwitchTheme, gmMode, onToggleGm }) {
   const [history, setHistory] = useState([])
   const [animIdx, setAnimIdx] = useState(0)
   const [cwd, setCwd] = useState('/')
@@ -134,12 +134,14 @@ export default function Terminal({ theme, themes, onSwitchTheme }) {
         switchTheme,
         unlocked,
         unlock,
-        openPasswordPrompt
+        openPasswordPrompt,
+        gmMode,
+        toggleGm: onToggleGm
       })
       if (out.length) push(out)
       push([{ text: '', instant: true }])
     },
-    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, openPasswordPrompt]
+    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, openPasswordPrompt, gmMode, onToggleGm]
   )
 
   const inputReady = animIdx >= history.length

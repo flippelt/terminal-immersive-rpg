@@ -71,8 +71,20 @@ const COMMANDS = {
     return entries.map((e) => {
       const child = getNode(ctx.fs, normalizePath(target, e.name))
       const locked = child?.locked && !ctx.unlocked?.has(normalizePath(target, e.name))
+      let suffix = ''
+      if (e.type === 'dir') suffix = '/'
+      else if (locked) {
+        if (ctx.gmMode) {
+          const parts = ['LOCKED']
+          if (child.password) parts.push(`pwd:${child.password}`)
+          if (child.crackable === false) parts.push('nocrack')
+          suffix = ` [${parts.join(' ')}]`
+        } else {
+          suffix = ' [LOCKED]'
+        }
+      }
       return {
-        text: e.type === 'dir' ? `${e.name}/` : locked ? `${e.name} [LOCKED]` : e.name,
+        text: `${e.name}${suffix}`,
         type: e.type === 'dir' ? 'ok' : locked ? 'muted' : 'normal'
       }
     })
@@ -96,6 +108,20 @@ const COMMANDS = {
     if (node.type !== 'file')
       return [{ text: `cat: ${path}: is a directory`, type: 'err' }]
     if (isLocked(node, ctx, path)) {
+      // GM mode: reveal locked content inline with a clear marker.
+      if (ctx.gmMode) {
+        const meta = []
+        if (node.password) meta.push(`pwd:${node.password}`)
+        if (node.crackable === false) meta.push('nocrack')
+        return [
+          {
+            text: `★ GM preview // ${path} [LOCKED${meta.length ? ' ' + meta.join(' ') : ''}]`,
+            type: 'muted'
+          },
+          ...(node.content ?? '').split('\n').map((text) => ({ text })),
+          { text: '★ end preview (file remains locked for players)', type: 'muted' }
+        ]
+      }
       const hint =
         node.password && node.crackable !== false
           ? 'try: `crack <file>` or `decrypt <file> <key>`'
@@ -108,6 +134,18 @@ const COMMANDS = {
       ]
     }
     return (node.content ?? '').split('\n').map((text) => ({ text }))
+  },
+
+  // Hidden — toggles GM mode. Not in `help`. Same as Ctrl+Shift+G.
+  gm: (ctx) => {
+    ctx.toggleGm?.()
+    const next = !ctx.gmMode
+    return [
+      {
+        text: next ? '★ GM mode ON — passwords revealed in ls/cat' : 'GM mode OFF',
+        type: next ? 'ok' : 'muted'
+      }
+    ]
   },
 
   theme: (ctx) => {
