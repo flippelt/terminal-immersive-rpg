@@ -28,11 +28,7 @@ npm run build
 ### GitHub Pages (automático)
 
 A cada push em `main`, o site é publicado via
-[`.github/workflows/deploy.yml`](.github/workflows/deploy.yml). Existem duas
-saídas:
-
-- versão completa (4 temas) — não linkada aqui, é a build interna
-- [**demo público**](https://flippelt.github.io/terminal-immersive-rpg/demo/) — curado (sem WH40K), com badge `DEMO` no canto
+[`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
 
 `vite.config.js` define o `base` por modo:
 - `npm run dev` → `/` (localhost)
