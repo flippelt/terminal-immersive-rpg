@@ -1,8 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Terminal from './components/Terminal.jsx'
 import ThemeSwitcher from './components/ThemeSwitcher.jsx'
 import AudioToggle from './components/AudioToggle.jsx'
+import Screensaver from './components/Screensaver.jsx'
 import { setVolume as setAudioVolume } from './audio/sfx.js'
+
+const IDLE_MS = 45000
 import {
   THEMES,
   DEFAULT_THEME,
@@ -81,6 +84,38 @@ export default function App() {
 
   const toggleGm = useCallback(() => setGmMode((m) => !m), [])
 
+  // Idle screensaver: appears after IDLE_MS without activity; any activity
+  // wakes it. The waking keystroke is swallowed so it doesn't leak into the
+  // terminal input.
+  const [idle, setIdle] = useState(false)
+  const idleRef = useRef(false)
+  idleRef.current = idle
+  useEffect(() => {
+    let timer
+    const arm = () => {
+      clearTimeout(timer)
+      timer = setTimeout(() => setIdle(true), IDLE_MS)
+    }
+    const onActivity = (e) => {
+      if (idleRef.current) {
+        setIdle(false)
+        if (e.type === 'keydown') {
+          e.preventDefault()
+          e.stopPropagation()
+        }
+      }
+      arm()
+    }
+    const opts = { capture: true }
+    const evts = ['keydown', 'mousedown', 'mousemove', 'touchstart', 'wheel']
+    evts.forEach((ev) => window.addEventListener(ev, onActivity, opts))
+    arm()
+    return () => {
+      clearTimeout(timer)
+      evts.forEach((ev) => window.removeEventListener(ev, onActivity, opts))
+    }
+  }, [])
+
   // Restore audio volume once on mount.
   useEffect(() => {
     const stored = parseFloat(localStorage.getItem('tirpg.volume') ?? '0.4')
@@ -136,6 +171,7 @@ export default function App() {
         onToggleDisabled={toggleThemeDisabled}
       />
       <AudioToggle />
+      {idle && <Screensaver onWake={() => setIdle(false)} />}
     </div>
   )
 }
