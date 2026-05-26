@@ -21,7 +21,7 @@
     "crackLabel": "RECITING UNAUTHORIZED LITANY",
     "decryptLabel": "INTONING SACRED KEY"
   },
-  "banner": "                    ++  THE OMNISSIAH PROTECTS  ++\n  ____    ___    ____   ___   _____      _      _____    ___   ____  \n / ___|  / _ \\   / ___| |_ _| |_   _|    / \\    |_   _|  / _ \\  |  _ \\ \n| |     | | | | | |  _   | |    | |     / _ \\     | |   | | | | | |_) |\n| |___  | |_| | | |_| |  | |    | |    / ___ \\    | |   | |_| | |  _ < \n \\____|  \\___/   \\____| |___|   |_|   /_/   \\_\\   |_|    \\___/  |_| \\_\\\n                      ++  ADEPTUS MECHANICUS  ++",
+  "banner": "╔════════════════════════════════════════════╗\n║       ++ COGITATOR MK.IX ++                ║\n║       ++ MARTIAN PATTERN ++                ║\n║   ++ THE OMNISSIAH PROTECTS ALL ++         ║\n║       ++ ADEPTUS MECHANICUS ++             ║\n╚════════════════════════════════════════════╝",
   "boot": [
     { "text": "++ INVOCATION OF MACHINE SPIRIT ++", "type": "muted" },
     { "text": "++ litany of activation: spoken ++", "type": "muted" },
