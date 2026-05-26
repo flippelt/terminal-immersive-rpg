@@ -43,17 +43,70 @@ export function isMuted() {
   return _muted
 }
 
-// Short typewriter click — fired on each printable keypress.
+// Keystroke — fired on each printable keypress. Default is a percussive
+// noise click (mechanical-keyboard feel). Set `kind: 'tone'` for the old
+// retro beep.
 export function playKeystroke(profile = {}) {
   const c = ensure()
   if (!c || _muted) return
   unsuspend(c)
+  if ((profile.kind ?? 'click') === 'tone') return keystrokeTone(c, profile)
+  return keystrokeClick(c, profile)
+}
+
+// Filtered white-noise burst with a fast decay — a key "tick".
+function keystrokeClick(c, profile) {
+  const now = c.currentTime
+  const dur = profile.duration ?? 0.02
+  const gain = profile.gain ?? 0.09
+  const cutoff = (profile.cutoff ?? 2200) + (Math.random() - 0.5) * 500
+  const lowThump = profile.thump ?? 0.4 // 0..1 — body of the press
+
+  const n = Math.max(1, Math.floor(c.sampleRate * dur))
+  const buffer = c.createBuffer(1, n, c.sampleRate)
+  const data = buffer.getChannelData(0)
+  for (let i = 0; i < n; i++) {
+    const env = 1 - i / n
+    data[i] = (Math.random() * 2 - 1) * env * env // sharp attack, fast decay
+  }
+  const src = c.createBufferSource()
+  src.buffer = buffer
+
+  const hp = c.createBiquadFilter()
+  hp.type = 'highpass'
+  hp.frequency.value = cutoff
+
+  const g = c.createGain()
+  g.gain.setValueAtTime(gain, now)
+  g.gain.exponentialRampToValueAtTime(0.0004, now + dur)
+
+  src.connect(hp).connect(g).connect(_master)
+  src.start(now)
+  src.stop(now + dur + 0.01)
+
+  // Subtle low "thump" gives the key some body.
+  if (lowThump > 0) {
+    const osc = c.createOscillator()
+    const tg = c.createGain()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(140 + Math.random() * 40, now)
+    osc.frequency.exponentialRampToValueAtTime(70, now + dur)
+    tg.gain.setValueAtTime(gain * 0.6 * lowThump, now)
+    tg.gain.exponentialRampToValueAtTime(0.0004, now + dur)
+    osc.connect(tg).connect(_master)
+    osc.start(now)
+    osc.stop(now + dur + 0.01)
+  }
+}
+
+// Legacy retro beep (kind: 'tone').
+function keystrokeTone(c, profile) {
+  const now = c.currentTime
   const dur = profile.duration ?? 0.012
   const freq = profile.freq ?? 1400
   const type = profile.type ?? 'square'
   const gain = profile.gain ?? 0.06
 
-  const now = c.currentTime
   const osc = c.createOscillator()
   const g = c.createGain()
   osc.type = type

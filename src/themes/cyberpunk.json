@@ -16,7 +16,7 @@
   "fontSize": "18px",
   "crt": { "glow": "10px", "typeSpeed": 8 },
   "sounds": {
-    "keystroke": { "freq": 1800, "duration": 0.008, "type": "square", "gain": 0.05 },
+    "keystroke": { "cutoff": 3200, "duration": 0.014, "gain": 0.07, "thump": 0.2 },
     "beep": { "freq": 1320, "duration": 0.08, "type": "sawtooth", "gain": 0.18 },
     "whoosh": { "duration": 0.5, "freqStart": 200, "freqEnd": 2400, "gain": 0.22 }
   },
