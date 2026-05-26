@@ -4,6 +4,7 @@ import Prompt from './Prompt.jsx'
 import PasswordModal from './PasswordModal.jsx'
 import { runCommand, buildDecryptLines } from '../engine/commands.js'
 import { playBeep, playWhoosh } from '../audio/sfx.js'
+import { scenarioIdsFor } from '../themes/index.js'
 
 let LINE_ID = 0
 const nextId = () => ++LINE_ID
@@ -19,7 +20,14 @@ const toLine = (l) => ({
   onComplete: l.onComplete
 })
 
-export default function Terminal({ theme, themes, onSwitchTheme, gmMode, onToggleGm }) {
+export default function Terminal({
+  theme,
+  themes,
+  onSwitchTheme,
+  onSwitchScenario,
+  gmMode,
+  onToggleGm
+}) {
   const [history, setHistory] = useState([])
   const [animIdx, setAnimIdx] = useState(0)
   const [cwd, setCwd] = useState('/')
@@ -144,12 +152,14 @@ export default function Terminal({ theme, themes, onSwitchTheme, gmMode, onToggl
         unlock,
         openPasswordPrompt,
         gmMode,
-        toggleGm: onToggleGm
+        toggleGm: onToggleGm,
+        scenarioIds: scenarioIdsFor(theme.id),
+        switchScenario: onSwitchScenario
       })
       if (out.length) push(out)
       push([{ text: '', instant: true }])
     },
-    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, openPasswordPrompt, gmMode, onToggleGm]
+    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, openPasswordPrompt, gmMode, onToggleGm, onSwitchScenario]
   )
 
   const inputReady = animIdx >= history.length

@@ -34,116 +34,11 @@
     { "text": ">>> the net does not forget. neither do we.", "type": "ok" },
     { "text": "" }
   ],
-  "motd": [
-    "// NetWatch Agent Console — Night City Subnet //",
-    "Active case: 4127-A — illegal incursion, Arasaka Tower",
-    "Last login: 17m ago (your station)",
-    "",
-    "try: `cat case.txt`, `ls suspects`, `architecture`",
-    ""
-  ],
   "extraHelp": [
     "  trace <handle>        run IP trace on a netrunner",
     "  deploy <ice>          deploy Black ICE program",
     "  architecture          show net architecture map"
   ],
   "unknownHint": "NETWATCH: unrecognized syscall. type `help`.",
-  "commands": {
-    "trace": [
-      ">>> opening trace channel...",
-      ">>> tracerouting through 7 jump nodes...",
-      ">>> [1] 10.0.0.4    Arasaka backbone — bounce",
-      ">>> [2] 192.0.0.99  Militech relay — bounce",
-      ">>> [3] 198.51.0.7  Night City civic mesh",
-      ">>> [4] [REDACTED]  cloak detected",
-      ">>> trace lost. subject runs Hellhound stealth firmware.",
-      ">>> recommendation: deploy Sabertooth ICE."
-    ],
-    "deploy": [
-      "BLACK ICE DEPLOYMENT — confirm? [y/N]",
-      "y",
-      ">>> SABERTOOTH ICE engaged.",
-      ">>> tracking subject signal...",
-      ">>> hit. neural feedback delivered.",
-      ">>> subject biomonitor: flatline.",
-      "",
-      "case 4127-A: closed. file in /sealed/."
-    ],
-    "architecture": [
-      "NIGHT CITY SUBNET MAP",
-      "                                              ",
-      "  [GLOBAL NET]                                ",
-      "       │                                      ",
-      "  ┌────┴────┐                                 ",
-      "  │ NETWATCH│  ← you are here                 ",
-      "  └────┬────┘                                 ",
-      "       │                                      ",
-      "  ┌────┼─────────────┐                        ",
-      "  │    │             │                        ",
-      "  ▼    ▼             ▼                        ",
-      "[ARA] [MIL]       [CIVIC]                     ",
-      " │     │            │                         ",
-      "host  host        public                      ",
-      "                                              ",
-      " ARA = Arasaka      MIL = Militech            "
-    ]
-  },
-  "filesystem": {
-    "/": {
-      "type": "dir",
-      "children": ["case.txt", "suspects", "ice", "blackbox.dat"]
-    },
-    "/case.txt": {
-      "type": "file",
-      "content": "CASE 4127-A — illegal incursion\n----------------------------------------\nDate:        2045-03-14, 03:47 NCT\nLocation:    Arasaka Tower, sublevel 6\nTarget data: project HEIMDALL specs\nLoss vector: corporate netrunner (unknown handle)\nDamage:      4 ICE programs vaporized, 2 sysops dead\n\nSubjects of interest: see /suspects/.\n\n>>> NetWatch authorization: lethal force on contact.\n"
-    },
-    "/suspects": {
-      "type": "dir",
-      "children": ["razorgirl.dat", "phantom.dat", "voidchild.dat"]
-    },
-    "/suspects/razorgirl.dat": {
-      "type": "file",
-      "content": "HANDLE: razorgirl\n  real name: Maya Tanaka\n  loadout:   Mantis Blades mk.IV, neural splice\n  affiliation: unaligned, ex-Tyger Claws\n  last seen: Watson combat zone, 2045-03-12\n  notes:    skilled wetwork. unlikely to net-intrude\n            (her cyberdeck is street-grade)."
-    },
-    "/suspects/phantom.dat": {
-      "type": "file",
-      "content": "HANDLE: phantom\n  real name: unknown\n  loadout:   Stephenson-tier cyberdeck, custom OS\n  affiliation: rumored Voodoo Boys associate\n  last seen: Pacifica, 2045-02-28\n  notes:    high probability suspect. ghost protocols.\n            no biometrics on file."
-    },
-    "/suspects/voidchild.dat": {
-      "type": "file",
-      "locked": true,
-      "password": "ZER0-DAY",
-      "crackTime": 5000,
-      "crackable": true,
-      "lockLabel": "PEELING ENCRYPTION ONION",
-      "crackSuccessMessage": "FILE OPENED. AGENT TRACE: nominal.",
-      "content": "HANDLE: voidchild\n  real name: [withheld]\n  affiliation: Voodoo Boys (top-tier netrunner)\n  loadout:   custom Netrunner architecture, Hellhound firmware\n  HEIMDALL: confirmed buyer — sold specs to Mr. Blue Eyes\n  trace:    impossible without Black ICE deployment.\n\n[NetWatch recommendation: deploy Sabertooth. Authorized.]"
-    },
-    "/ice": {
-      "type": "dir",
-      "children": ["sabertooth.exe", "hellhound.exe", "rasterbeam.exe"]
-    },
-    "/ice/sabertooth.exe": {
-      "type": "file",
-      "content": "BLACK ICE — SABERTOOTH\n  class:    lethal (neural feedback)\n  range:    full subnet\n  drawback: leaves federal traces, scrutiny risk\n  usage:    `deploy sabertooth`"
-    },
-    "/ice/hellhound.exe": {
-      "type": "file",
-      "content": "BLACK ICE — HELLHOUND\n  class:    pursuit (autonomous trace)\n  range:    cross-subnet\n  drawback: alerts target on engagement\n  usage:    `deploy hellhound`"
-    },
-    "/ice/rasterbeam.exe": {
-      "type": "file",
-      "content": "WHITE ICE — RASTERBEAM\n  class:    non-lethal (logout)\n  range:    local host\n  drawback: none\n  usage:    `deploy rasterbeam`"
-    },
-    "/blackbox.dat": {
-      "type": "file",
-      "locked": true,
-      "password": "OPERATION-PHARMAKOS",
-      "crackable": false,
-      "crackFailMessage": "FEDERAL ENCRYPTION. ATTEMPT FLAGGED TO INTERNAL AFFAIRS.",
-      "decryptLabel": "FEDERAL CERTIFICATE EXCHANGE",
-      "decryptTime": 2500,
-      "content": "// NETWATCH INTERNAL — OPERATION PHARMAKOS //\n\nProject HEIMDALL was a NetWatch creation, planted in\nArasaka Tower as a controlled honeypot.\n\nThe runner who took it triggered a tracking subroutine.\nWe know who they are. We always have.\n\nCase 4127-A is theater for the Council. End user is to\nbe \"retired\" once the trace completes.\n\nNet does not forget. Neither do we."
-    }
-  }
+  "defaultScenario": "heimdall"
 }

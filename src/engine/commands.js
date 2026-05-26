@@ -28,6 +28,7 @@ const help = (extra = []) => [
   { text: '  clear                 wipe screen' },
   { text: '  motd                  reprint banner' },
   { text: '  theme [id]            switch system' },
+  { text: '  scenario [list|load]  switch campaign within a system' },
   { text: '  reboot                cold restart' },
   { text: '  crack <file>          brute-force a locked file' },
   { text: '  decrypt <file> <key>  unlock with password' },
@@ -141,6 +142,42 @@ const COMMANDS = {
       ]
     }
     return (node.content ?? '').split('\n').map((text) => ({ text }))
+  },
+
+  scenario: (ctx) => {
+    const action = ctx.args[0]
+    const ids = ctx.scenarioIds ?? []
+    if (!action || action === 'status') {
+      return [
+        { text: `current scenario: ${ctx.theme.scenarioId ?? '(none)'}`, type: 'ok' },
+        ctx.theme.scenarioName
+          ? { text: `  ${ctx.theme.scenarioName}`, type: 'muted' }
+          : { text: 'usage: scenario list | scenario load <id>', type: 'muted' }
+      ]
+    }
+    if (action === 'list') {
+      if (ids.length === 0)
+        return [{ text: 'no scenarios registered for this system.', type: 'muted' }]
+      return [
+        { text: `scenarios for ${ctx.theme.name}:`, type: 'ok' },
+        ...ids.map((id) => ({
+          text: `  ${id}${id === ctx.theme.scenarioId ? '  (current)' : ''}`,
+          type: id === ctx.theme.scenarioId ? 'ok' : 'normal'
+        }))
+      ]
+    }
+    if (action === 'load') {
+      const id = ctx.args[1]
+      if (!id) return [{ text: 'scenario load: missing scenario id', type: 'err' }]
+      if (!ids.includes(id))
+        return [
+          { text: `scenario: unknown id "${id}"`, type: 'err' },
+          { text: `available: ${ids.join(', ')}`, type: 'muted' }
+        ]
+      ctx.switchScenario?.(id)
+      return []
+    }
+    return [{ text: `scenario: unknown action "${action}"`, type: 'err' }]
   },
 
   volume: (ctx) => {

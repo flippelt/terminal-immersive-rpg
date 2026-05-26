@@ -29,61 +29,10 @@
     { "text": "++ THE OMNISSIAH PROTECTS ++", "type": "ok" },
     { "text": "" }
   ],
-  "motd": [
-    "++ CREDO OMNISSIAH ++",
-    "the flesh is weak. the machine is eternal.",
-    "knowledge is power — guard it well.",
-    "",
-    "magos, your queries: `cat creed.txt`, `ls archives`",
-    ""
-  ],
   "extraHelp": [
     "  litany <name>          recite sacred subroutine",
     "  bless <unit>           apply unction"
   ],
   "unknownHint": "++ THE MACHINE SPIRIT IS DISPLEASED ++",
-  "commands": {
-    "litany": [
-      "++ LITANY OF IGNITION ++",
-      "from the moment i understood the weakness of my flesh,",
-      "it disgusted me. i craved the strength and certainty of steel.",
-      "i aspired to the purity of the blessed machine.",
-      "++ all praise the omnissiah ++"
-    ],
-    "bless": [
-      "++ unction applied. machine spirit appeased. ++",
-      "++ may it serve a thousand more years. ++"
-    ]
-  },
-  "filesystem": {
-    "/":             { "type": "dir", "children": ["creed.txt", "archives", "datavault", "heresy.dat"] },
-    "/creed.txt": {
-      "type": "file",
-      "content": "++ CREDO OMNISSIAH ++\n\nFrom the moment I understood the weakness of my flesh, it disgusted me.\nThe weak need the strong. The flesh needs the steel.\nKnowledge is power. Guard it well.\nThou shalt not yield to xenos thought. Thou shalt cleanse the heretic.\n\n++ PRAISE BE TO THE MACHINE GOD ++"
-    },
-    "/heresy.dat": {
-      "type": "file",
-      "locked": true,
-      "password": "++LORGAR++",
-      "crackable": false,
-      "crackFailMessage": "++ THE MACHINE SPIRIT REFUSES. INQUISITION TRACE INITIATED. ++",
-      "decryptLabel": "WHISPERING THE FORBIDDEN NAME",
-      "decryptTime": 3000,
-      "content": "++ HERETICAL DOCUMENT — DESTROY ON SIGHT ++\n\nFrom the writings of Lorgar, before his fall:\n   The pantheon is real.\n   The Emperor is not the only god.\n   Look upon the warp. Look without fear.\n\n[++ magos, this file should not exist. confess to the bishop. ++]"
-    },
-    "/archives":     { "type": "dir", "children": ["stc-fragment-7.dat", "forgeworlds.txt"] },
-    "/archives/stc-fragment-7.dat": {
-      "type": "file",
-      "content": "STC FRAGMENT 7 // recovered from world 7-Gamma\n  pattern: las-rifle, mark VII\n  tolerances: ±0.04mm\n  ritual: 14 stations of activation\n[remainder corrupted — magos to attempt reconstruction]"
-    },
-    "/archives/forgeworlds.txt": {
-      "type": "file",
-      "content": "FORGE WORLDS — MAJOR\n  MARS         — sovereign, primary\n  RYZA         — plasma craft\n  GRAIA        — titan legions\n  METALICA     — skitarii cohorts\n  VOSS PRIMUS  — small arms, ordnance"
-    },
-    "/datavault":    { "type": "dir", "children": ["augmetics.log"] },
-    "/datavault/augmetics.log": {
-      "type": "file",
-      "content": "MAGOS — augmetic replacement log\n  L. eye        — mark IV optic   [installed]\n  R. arm        — servo-arm       [installed]\n  spine         — adamantine       [installed]\n  cortex impl.  — pending bishop's review"
-    }
-  }
+  "defaultScenario": "mechanicus-archive"
 }
