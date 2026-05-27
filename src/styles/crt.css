@@ -616,6 +616,11 @@
   to { opacity: 1; }
 }
 .caught__final {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 3vh, 32px);
   text-align: center;
   color: var(--error, #ff3b3b);
   font-family: var(--font), monospace;
@@ -626,17 +631,39 @@
   font-weight: bold;
   letter-spacing: 0.15em;
   white-space: pre;
+  line-height: 1;
 }
 .caught__smiley {
-  display: block;
-  margin-top: 0.1em;
   font-size: clamp(3rem, 16vw, 9rem);
   line-height: 1;
-  animation: caught-throb 1s ease-in-out infinite;
+  animation: caught-throb 1.1s ease-in-out infinite;
+}
+/* Drawn menacing face — perfectly centered, with a red glow. */
+.caught__face {
+  display: block;
+  width: clamp(120px, 26vw, 240px);
+  height: auto;
+  filter: drop-shadow(0 0 16px currentColor);
 }
 @keyframes caught-throb {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.12); }
+  50% { transform: scale(1.1) rotate(-2deg); }
+}
+
+/* Monitor powering off: collapse to a bright line, then a dot, then black. */
+.caught__off {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: #e9fff6;
+  transform-origin: center;
+  animation: crt-power-off 0.66s cubic-bezier(0.5, 0, 0.7, 1) forwards;
+}
+@keyframes crt-power-off {
+  0% { transform: scale(1, 1); opacity: 1; }
+  55% { transform: scale(1, 0.018); opacity: 1; }
+  82% { transform: scale(0.04, 0.018); opacity: 1; }
+  100% { transform: scale(0, 0); opacity: 0; }
 }
 
 /* === ICE alert window (e.g. repeated scan) — warns, doesn't trace === */
@@ -749,6 +776,7 @@
   .tracer--done,
   .caught__popup,
   .caught__smiley,
+  .caught__off,
   .ice-alert__title {
     animation: none;
   }
