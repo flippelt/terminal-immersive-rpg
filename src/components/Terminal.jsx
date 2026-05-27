@@ -3,6 +3,12 @@ import OutputLine from './OutputLine.jsx'
 import Prompt from './Prompt.jsx'
 import InputModal from './InputModal.jsx'
 import ProgressModal from './ProgressModal.jsx'
+import SelfDestructModal from './SelfDestructModal.jsx'
+
+const toLines = (val, type) =>
+  (Array.isArray(val) ? val : [val])
+    .filter((v) => v != null)
+    .map((v) => (typeof v === 'string' ? { text: v, type } : v))
 import { runCommand, buildDecryptLines, buildCrackLines } from '../engine/commands.js'
 import { complete } from '../engine/complete.js'
 import { playBeep, playWhoosh } from '../audio/sfx.js'
@@ -55,6 +61,7 @@ export default function Terminal({
   const [crackAttempts, setCrackAttempts] = useState(() => new Map())
   const [authed, setAuthed] = useState(true)
   const [loginTries, setLoginTries] = useState(0)
+  const [selfDestruct, setSelfDestruct] = useState(null)
   const scrollRef = useRef(null)
 
   // Keep a live ref to history so `advance` always reads the latest array
@@ -70,6 +77,7 @@ export default function Terminal({
     setUnlocked(loadProgress(theme))
     setModal(null)
     setCrackAttempts(new Map())
+    setSelfDestruct(null)
     const needsLogin = !!theme.login
     setAuthed(!needsLogin)
     setLoginTries(0)
@@ -177,6 +185,28 @@ export default function Terminal({
     [push]
   )
 
+  const openSelfDestruct = useCallback((config) => {
+    setSelfDestruct(config ?? {})
+  }, [])
+
+  const handleDetonate = useCallback(() => {
+    const c = selfDestruct ?? {}
+    setSelfDestruct(null)
+    push([
+      ...toLines(c.detonate ?? 'DETONATION.', 'err'),
+      { text: '', instant: true }
+    ])
+  }, [selfDestruct, push])
+
+  const handleAbort = useCallback(() => {
+    const c = selfDestruct ?? {}
+    setSelfDestruct(null)
+    push([
+      ...toLines(c.aborted ?? 'self-destruct sequence aborted.', 'ok'),
+      { text: '', instant: true }
+    ])
+  }, [selfDestruct, push])
+
   const openPasswordPrompt = useCallback((path, node) => {
     setModal({ kind: 'decrypt', path, node })
   }, [])
@@ -259,6 +289,7 @@ export default function Terminal({
         resetProgress,
         openPasswordPrompt,
         openCrackPrompt,
+        openSelfDestruct,
         crackAttempts,
         gmMode,
         toggleGm: onToggleGm,
@@ -268,7 +299,7 @@ export default function Terminal({
       if (out.length) push(out)
       push([{ text: '', instant: true }])
     },
-    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, resetProgress, openPasswordPrompt, openCrackPrompt, crackAttempts, gmMode, onToggleGm, onSwitchScenario]
+    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, resetProgress, openPasswordPrompt, openCrackPrompt, openSelfDestruct, crackAttempts, gmMode, onToggleGm, onSwitchScenario]
   )
 
   const inputReady = animIdx >= history.length
@@ -340,6 +371,13 @@ export default function Terminal({
           label={progressLine.label}
           duration={progressLine.duration}
           onDone={advance}
+        />
+      )}
+      {selfDestruct && (
+        <SelfDestructModal
+          config={selfDestruct}
+          onAbort={handleAbort}
+          onDetonate={handleDetonate}
         />
       )}
     </>

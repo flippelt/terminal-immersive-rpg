@@ -400,6 +400,49 @@
   min-width: 420px;
 }
 
+/* === Self-destruct popup === */
+.modal-overlay--alarm {
+  background: color-mix(in srgb, var(--error, #ff4444) 14%, rgba(0, 0, 0, 0.78));
+}
+
+.modal--destruct {
+  min-width: min(560px, 90vw);
+  border-color: var(--error, #ff4444);
+  box-shadow:
+    0 0 36px color-mix(in srgb, var(--error, #ff4444) 45%, transparent),
+    inset 0 0 80px color-mix(in srgb, var(--error, #ff4444) 8%, transparent);
+}
+
+.modal__header--alarm {
+  color: var(--error, #ff4444);
+  animation: alarm-pulse 0.6s steps(2, end) infinite;
+}
+
+.destruct__count {
+  font-size: 2.4em;
+  font-weight: bold;
+  letter-spacing: 3px;
+  color: var(--error, #ff4444);
+  text-align: center;
+  margin: 14px 0 18px;
+  text-shadow: 0 0 12px currentColor;
+}
+
+.destruct__override {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  margin-bottom: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--error, #ff4444) 35%, transparent);
+  padding-top: 14px;
+}
+
+.modal__footer--reject {
+  color: var(--error, #ff4444);
+  opacity: 1;
+  font-weight: bold;
+}
+
 .modal__bar {
   margin: 0;
   white-space: pre;
@@ -467,7 +510,8 @@
   .cursor--inline,
   .modal,
   .modal-overlay,
-  .line--alarm {
+  .line--alarm,
+  .modal__header--alarm {
     animation: none;
   }
 }

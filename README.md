@@ -205,6 +205,20 @@ do acesso concedido.
 }
 ```
 
+**Autodestruição (`selfDestruct`):** o comando `selfdestruct` (alias `destruct`)
+abre um popup grande com contagem regressiva e uma área **OVERRIDE** — digitar o
+código (definido pelo Mestre) aborta; chegar a zero detona.
+
+```jsonc
+"selfDestruct": {
+  "from": 10, "interval": 800,
+  "override": "OVERRIDE-937",        // código do Mestre pra abortar
+  "armed": "EMERGENCY DESTRUCT SYSTEM ARMED",
+  "aborted": ["destruct aborted."],  // linhas após abortar
+  "detonate": ["DETONATION."]        // linhas ao detonar
+}
+```
+
 ### Arquivos do terminal
 
 - **Arquivo aberto** = só o texto. Crie `files/nota.txt` com o conteúdo.
