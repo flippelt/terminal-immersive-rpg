@@ -15,7 +15,7 @@
       "popups": ["FOUND YOU!", "FOUND YOU", "I SEE YOU", "GOTCHA", "TOO SLOW", "NICE TRY, NETRUNNER", "FOUND YOU!"],
       "popupCount": 16,
       "finalText": "FOUND YOU",
-      "smiley": ":)",
+      "_smiley": ":)",
       "hold": 7
     }
   },
