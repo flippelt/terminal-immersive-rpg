@@ -7,6 +7,7 @@ import SelfDestructModal from './SelfDestructModal.jsx'
 import Tracer from './Tracer.jsx'
 import TraceCaught from './TraceCaught.jsx'
 import IceAlert from './IceAlert.jsx'
+import DecryptGame from './DecryptGame.jsx'
 
 const toLines = (val, type) =>
   (Array.isArray(val) ? val : [val])
@@ -77,6 +78,7 @@ export default function Terminal({
   const [caught, setCaught] = useState(null)
   const [checkResults, setCheckResults] = useState(() => new Map())
   const [iceAlert, setIceAlert] = useState(null)
+  const [decryptGame, setDecryptGame] = useState(null) // { path, node }
   // path -> number of repeated scans; each burns one startAfter "grace".
   const scanReductionsRef = useRef(new Map())
   const scrollRef = useRef(null)
@@ -100,6 +102,7 @@ export default function Terminal({
     setCaught(null)
     setCheckResults(new Map())
     setIceAlert(null)
+    setDecryptGame(null)
     scanReductionsRef.current = new Map()
     const needsLogin = !!theme.login
     setAuthed(!needsLogin)
@@ -237,6 +240,39 @@ export default function Terminal({
   const openCheckPrompt = useCallback((path, node) => {
     setModal({ kind: 'check', path, node })
   }, [])
+
+  const openDecryptGame = useCallback((path, node) => {
+    setDecryptGame({ path, node })
+  }, [])
+
+  // Won the cipher minigame: recover the key, evade the tracer, and run the
+  // normal unlock sequence (progress + reveal chain + events).
+  const handleDecryptWin = useCallback(() => {
+    if (!decryptGame) return
+    const { path, node } = decryptGame
+    setDecryptGame(null)
+    const tr = themeRef.current.tracer
+    if (tr && node.tracer && tracerEndsAt != null) setTracerEndsAt(null)
+    push([
+      { text: `>>> cipher solved — key recovered: ${node.password}`, type: 'ok' },
+      ...buildDecryptLines(themeRef.current, path, node, node.password, unlock, themeRef.current.filesystem),
+      { text: '', instant: true }
+    ])
+  }, [decryptGame, push, unlock, tracerEndsAt])
+
+  const handleDecryptLose = useCallback(() => {
+    setDecryptGame(null)
+    push([
+      { text: 'decryption failed — cipher re-scrambled.', type: 'err' },
+      { text: 'try `decrypt` again, or `unlock <file> <key>` if you have the password.', type: 'muted' },
+      { text: '', instant: true }
+    ])
+  }, [push])
+
+  const handleDecryptCancel = useCallback(() => {
+    setDecryptGame(null)
+    push([{ text: 'decrypt: cancelled.', type: 'muted' }, { text: '', instant: true }])
+  }, [push])
 
   // Clear the tracer when the player gets in cleanly via the inline
   // `decrypt <file> <key>` path. (The decrypt modal handles its own evade.)
@@ -430,6 +466,7 @@ export default function Terminal({
         openPasswordPrompt,
         openCrackPrompt,
         openCheckPrompt,
+        openDecryptGame,
         openSelfDestruct,
         tripTracer,
         flagRescan,
@@ -447,7 +484,7 @@ export default function Terminal({
       if (out.length) push(out)
       push([{ text: '', instant: true }])
     },
-    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, resetProgress, openPasswordPrompt, openCrackPrompt, openCheckPrompt, openSelfDestruct, tripTracer, flagRescan, evadeTracer, checkResults, crackAttempts, gmMode, onToggleGm, onSwitchScenario, onLoadScenarioUrl, onOpenScenarioPaste, onShareScenario]
+    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, resetProgress, openPasswordPrompt, openCrackPrompt, openCheckPrompt, openDecryptGame, openSelfDestruct, tripTracer, flagRescan, evadeTracer, checkResults, crackAttempts, gmMode, onToggleGm, onSwitchScenario, onLoadScenarioUrl, onOpenScenarioPaste, onShareScenario]
   )
 
   const inputReady = animIdx >= history.length
@@ -482,7 +519,7 @@ export default function Terminal({
             />
           )
         })}
-        {inputReady && !modal && authed && (
+        {inputReady && !modal && !decryptGame && authed && (
           <Prompt
             sigil={theme.prompt ?? '$'}
             cwd={cwd}
@@ -536,6 +573,16 @@ export default function Terminal({
       )}
       {caught && <TraceCaught config={caught} onReboot={handleCaughtReboot} />}
       {iceAlert && <IceAlert message={iceAlert} onClose={() => setIceAlert(null)} />}
+      {decryptGame && (
+        <DecryptGame
+          target={decryptGame.node.decryptTarget}
+          attempts={decryptGame.node.decryptAttempts ?? 6}
+          label={decryptGame.node.decryptLabel}
+          onWin={handleDecryptWin}
+          onLose={handleDecryptLose}
+          onCancel={handleDecryptCancel}
+        />
+      )}
     </>
   )
 }

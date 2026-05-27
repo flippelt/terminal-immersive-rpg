@@ -6,6 +6,7 @@ import fallout from './fallout.json'
 import cyberpunk from './cyberpunk.json'
 import dataslate from './dataslate.json'
 import ibm from './ibm.json'
+import { pickWord } from '../engine/wordle.js'
 
 // A THEME is a skin (palette, font, banner, sounds, boot, locks defaults).
 // A SCENARIO is a campaign that plugs into a theme. Its layout on disk:
@@ -90,6 +91,9 @@ for (const [key, raw] of Object.entries(fileModules)) {
   if (!m) continue
   const [, themeId, scenarioId, rel] = m
   const { meta, content } = parseFrontMatter(raw)
+  // For decrypt-minigame files, pick the target keyword once at load so the
+  // GM can read it via `gmsheet` (and it stays stable for the session).
+  if (meta.decryptGame) meta.decryptTarget = pickWord(meta)
   const bucket = (FILE_BUCKETS[`${themeId}/${scenarioId}`] ??= [])
   bucket.push({ path: '/' + rel, content, meta })
 }

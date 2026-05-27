@@ -1,0 +1,12 @@
+---
+locked: true
+password: MAINFRAME
+crackable: false
+decryptGame: true
+decryptWords: LEDGER,KERNEL,SOCKET,DAEMON
+decryptAttempts: 6
+crackFailMessage: physical safe — no brute force. solve the cipher with `decrypt`, or enter the combo with `unlock`.
+---
+DR. HALDEN — PERSONAL SAFE
+The day-key rotates. Solve the cipher (`decrypt safe.dat`) to recover
+today's combination, or enter it directly (`unlock safe.dat <key>`).

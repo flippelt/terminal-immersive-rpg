@@ -400,6 +400,50 @@
   min-width: 420px;
 }
 
+/* === Decrypt minigame (Wordle-style) === */
+.modal--decrypt {
+  min-width: min(440px, 92vw);
+}
+.wordle {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  margin: 16px 0;
+}
+.wordle__row {
+  display: flex;
+  gap: 6px;
+}
+.wordle__tile {
+  width: 2.1em;
+  height: 2.1em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--muted, #1a661a);
+  font-family: var(--font), monospace;
+  font-weight: bold;
+  font-size: 1.1em;
+  text-transform: uppercase;
+  color: var(--fg);
+}
+.wordle__tile--active {
+  border-color: var(--fg);
+}
+.wordle__tile--hit {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+.wordle__tile--present {
+  background: color-mix(in srgb, var(--accent) 32%, transparent);
+  border-color: var(--accent);
+}
+.wordle__tile--miss {
+  opacity: 0.45;
+}
+
 /* === Load custom scenario dialog === */
 .modal--scenario {
   min-width: min(640px, 92vw);

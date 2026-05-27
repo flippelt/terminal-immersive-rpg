@@ -41,7 +41,8 @@ const help = (extra = []) => [
   { text: '  reset                 wipe this scenario’s progress' },
   { text: '  check <file>          scan a file: lock, brute-force & surveillance' },
   { text: '  crack <file>          brute-force a locked file' },
-  { text: '  decrypt <file> <key>  unlock with password' },
+  { text: '  decrypt <file>        recover the key via the cipher minigame' },
+  { text: '  unlock <file> <key>   unlock with a known password' },
   { text: '  volume [0-100|mute]   audio level' },
   { text: '  hum [on|off]          ambient CRT hum' },
   ...extra.map((line) => ({ text: line, type: 'muted' }))
@@ -229,12 +230,12 @@ const COMMANDS = {
           { text: '★ end preview (file remains locked for players)', type: 'muted' }
         ]
       }
-      const hint =
-        node.password && node.crackable !== false
-          ? 'try: `crack <file>` or `decrypt <file> <key>`'
-          : node.password
-            ? 'try: `decrypt <file> <key>`'
-            : 'try: `crack <file>`'
+      // Build the suggestions from what the file actually supports.
+      const ways = []
+      if (node.crackable !== false) ways.push('`crack <file>`')
+      if (node.decryptGame) ways.push('`decrypt <file>`')
+      if (node.password) ways.push('`unlock <file> <key>`')
+      const hint = ways.length ? `try: ${ways.join(' or ')}` : 'no known way in.'
       return [
         { text: `cat: ${path}: ACCESS DENIED`, type: 'err' },
         { text: hint, type: 'muted' }
@@ -403,6 +404,7 @@ const COMMANDS = {
       if (n.crackDC != null) parts.push(`DC:${n.crackDC}`)
       if (n.crackable === false) parts.push('nocrack')
       if (n.checkDC != null) parts.push(`checkDC:${n.checkDC}`)
+      if (n.decryptGame && n.decryptTarget) parts.push(`decryptWord:${n.decryptTarget}`)
       if (n.tracer && ctx.theme.tracer) {
         const w = n.tracerSeconds ?? ctx.theme.tracer.seconds ?? 30
         parts.push(`tracer:${w}s`)
@@ -485,35 +487,28 @@ const COMMANDS = {
     return buildCrackLines(ctx.theme, path, node, ctx.unlock, ctx.fs)
   },
 
+  // `unlock <file> [key]` — apply a known password. Omit the key for the
+  // secure dialog. (This is the classic "decrypt" behavior.)
+  unlock: (ctx) => passwordUnlock(ctx, 'unlock'),
+
+  // `decrypt <file>` — discover the key via a Wordle-style minigame when the
+  // file opts in (`decryptGame: true`). Otherwise it falls back to the
+  // password unlock, so existing scenarios keep working.
   decrypt: (ctx) => {
-    const [file, ...rest] = ctx.args
-    const key = rest.join(' ')
-    if (!file)
+    const [file] = ctx.args
+    if (!file) {
       return [
-        { text: 'decrypt: usage: decrypt <file> [key]', type: 'err' },
-        { text: '(omit key to be prompted by a secure dialog)', type: 'muted' }
-      ]
-    const { path, node } = resolveTarget(ctx, file)
-    if (!node) return [{ text: `decrypt: ${path}: no such file`, type: 'err' }]
-    if (node.type !== 'file')
-      return [{ text: `decrypt: ${path}: is a directory`, type: 'err' }]
-    if (!node.locked || ctx.unlocked?.has(path))
-      return [{ text: `decrypt: ${path}: file is not encrypted`, type: 'muted' }]
-    if (!node.password)
-      return [
-        { text: `decrypt: ${path}: no password-based encryption.`, type: 'err' },
-        { text: 'try `crack` instead.', type: 'muted' }
-      ]
-    // Cinematic path: no key on the command line -> open the modal.
-    if (!key) {
-      ctx.openPasswordPrompt?.(path, node)
-      return [
-        { text: `${path} — encrypted. authentication required.`, type: 'muted' }
+        { text: 'decrypt: usage: decrypt <file>', type: 'err' },
+        { text: '(solve the cipher minigame to recover the key)', type: 'muted' }
       ]
     }
-    // Inline path (script/power-user): key already provided.
-    if (key === node.password && node.tracer) ctx.evadeTracer?.(node)
-    return buildDecryptLines(ctx.theme, path, node, key, ctx.unlock, ctx.fs)
+    const { path, node } = resolveTarget(ctx, file)
+    if (node && node.type === 'file' && node.locked && !ctx.unlocked?.has(path) && node.decryptGame && node.decryptTarget) {
+      ctx.openDecryptGame?.(path, node)
+      return [{ text: `${path} — running cipher analysis…`, type: 'muted' }]
+    }
+    // No minigame on this file → behave like `unlock`.
+    return passwordUnlock(ctx, 'decrypt')
   },
 
   query: (ctx) => runDialog(ctx),
@@ -648,6 +643,37 @@ export function buildCheckLines(theme, path, node, { tier = 'precise', locked = 
   }
   if (gm && node.password) out.push({ text: `  ★ pwd:${node.password}`, type: 'muted' })
   return out
+}
+
+// Shared password-unlock flow for `unlock` (and `decrypt` fallback).
+function passwordUnlock(ctx, cmd) {
+  const [file, ...rest] = ctx.args
+  const key = rest.join(' ')
+  if (!file) {
+    return [
+      { text: `${cmd}: usage: ${cmd} <file> [key]`, type: 'err' },
+      { text: '(omit key to be prompted by a secure dialog)', type: 'muted' }
+    ]
+  }
+  const { path, node } = resolveTarget(ctx, file)
+  if (!node) return [{ text: `${cmd}: ${path}: no such file`, type: 'err' }]
+  if (node.type !== 'file')
+    return [{ text: `${cmd}: ${path}: is a directory`, type: 'err' }]
+  if (!node.locked || ctx.unlocked?.has(path))
+    return [{ text: `${cmd}: ${path}: file is not encrypted`, type: 'muted' }]
+  if (!node.password)
+    return [
+      { text: `${cmd}: ${path}: no password-based encryption.`, type: 'err' },
+      { text: 'try `crack` instead.', type: 'muted' }
+    ]
+  // Cinematic path: no key on the command line -> open the modal.
+  if (!key) {
+    ctx.openPasswordPrompt?.(path, node)
+    return [{ text: `${path} — encrypted. authentication required.`, type: 'muted' }]
+  }
+  // Inline path (script/power-user): key already provided.
+  if (key === node.password && node.tracer) ctx.evadeTracer?.(node)
+  return buildDecryptLines(ctx.theme, path, node, key, ctx.unlock, ctx.fs)
 }
 
 // The brute-force success sequence. Used by the plain crack flow and by

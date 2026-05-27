@@ -153,6 +153,37 @@ describe('buildDecryptLines', () => {
   })
 })
 
+describe('unlock / decrypt routing', () => {
+  const gameFs = {
+    '/': { type: 'dir', children: ['safe.dat', 'plain.dat'] },
+    '/safe.dat': { type: 'file', locked: true, password: 'MAINFRAME', crackable: false, decryptGame: true, decryptTarget: 'KERNEL', decryptAttempts: 6 },
+    '/plain.dat': { type: 'file', locked: true, password: 'PW', crackable: true }
+  }
+  it('unlock opens the password dialog when no key is given', () => {
+    const openPasswordPrompt = vi.fn()
+    runCommand('unlock plain.dat', makeCtx({ fs: gameFs, openPasswordPrompt }))
+    expect(openPasswordPrompt).toHaveBeenCalledWith('/plain.dat', gameFs['/plain.dat'])
+  })
+  it('unlock with the right key returns the unlock sequence', () => {
+    const out = runCommand('unlock plain.dat PW', makeCtx({ fs: gameFs }))
+    expect(out.some((l) => l.type === 'progress')).toBe(true)
+  })
+  it('decrypt opens the minigame for a decryptGame file', () => {
+    const openDecryptGame = vi.fn()
+    runCommand('decrypt safe.dat', makeCtx({ fs: gameFs, openDecryptGame }))
+    expect(openDecryptGame).toHaveBeenCalledWith('/safe.dat', gameFs['/safe.dat'])
+  })
+  it('decrypt falls back to password unlock when there is no game', () => {
+    const openPasswordPrompt = vi.fn()
+    runCommand('decrypt plain.dat', makeCtx({ fs: gameFs, openPasswordPrompt }))
+    expect(openPasswordPrompt).toHaveBeenCalledWith('/plain.dat', gameFs['/plain.dat'])
+  })
+  it('gmsheet reveals the decrypt word', () => {
+    const out = runCommand('gmsheet', makeCtx({ fs: gameFs, gmMode: true }))
+    expect(out.some((l) => l.text.includes('decryptWord:KERNEL'))).toBe(true)
+  })
+})
+
 describe('grep / find', () => {
   it('greps file contents and skips locked files for players', () => {
     const out = runCommand('grep organism', makeCtx())
