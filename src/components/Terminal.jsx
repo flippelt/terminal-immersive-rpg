@@ -16,6 +16,7 @@ const toLines = (val, type) =>
 import { runCommand, buildDecryptLines, buildCrackLines, buildCheckLines } from '../engine/commands.js'
 import { complete } from '../engine/complete.js'
 import { effTracer, scanTier } from '../engine/tracer.js'
+import { pickWord } from '../engine/wordle.js'
 import { playBeep, playWhoosh } from '../audio/sfx.js'
 import { scenarioIdsFor } from '../themes/index.js'
 
@@ -54,6 +55,7 @@ const toLine = (l) => ({
 export default function Terminal({
   theme,
   themes,
+  lang = 'en',
   onSwitchTheme,
   onSwitchScenario,
   onLoadScenarioUrl,
@@ -104,6 +106,7 @@ export default function Terminal({
     setIceAlert(null)
     setDecryptGame(null)
     scanReductionsRef.current = new Map()
+    decryptTargetsRef.current = new Map()
     const needsLogin = !!theme.login
     setAuthed(!needsLogin)
     setLoginTries(0)
@@ -132,6 +135,25 @@ export default function Terminal({
 
   const themeRef = useRef(theme)
   themeRef.current = theme
+  const langRef = useRef(lang)
+  langRef.current = lang
+
+  // Default-pool decrypt words are picked at runtime (so they follow the
+  // active language) and cached per path so `gmsheet` and the game agree.
+  // Cleared on reboot and whenever the language changes.
+  const decryptTargetsRef = useRef(new Map())
+  const resolveDecryptTarget = useCallback((path, node) => {
+    if (!node) return undefined
+    if (node.decryptWord || node.decryptWords) return node.decryptTarget
+    if (!node.decryptTarget) return undefined // no game on this file
+    const m = decryptTargetsRef.current
+    if (!m.has(path)) m.set(path, pickWord({}, Math.random, langRef.current))
+    return m.get(path)
+  }, [])
+
+  useEffect(() => {
+    decryptTargetsRef.current = new Map()
+  }, [lang])
 
   const advance = useCallback(() => {
     setAnimIdx((i) => {
@@ -241,9 +263,12 @@ export default function Terminal({
     setModal({ kind: 'check', path, node })
   }, [])
 
-  const openDecryptGame = useCallback((path, node) => {
-    setDecryptGame({ path, node })
-  }, [])
+  const openDecryptGame = useCallback(
+    (path, node) => {
+      setDecryptGame({ path, node, target: resolveDecryptTarget(path, node) })
+    },
+    [resolveDecryptTarget]
+  )
 
   // Won the cipher minigame: recover the key, evade the tracer, and run the
   // normal unlock sequence (progress + reveal chain + events).
@@ -471,6 +496,8 @@ export default function Terminal({
         tripTracer,
         flagRescan,
         evadeTracer,
+        resolveDecryptTarget,
+        lang,
         checkResults,
         crackAttempts,
         gmMode,
@@ -484,7 +511,7 @@ export default function Terminal({
       if (out.length) push(out)
       push([{ text: '', instant: true }])
     },
-    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, resetProgress, openPasswordPrompt, openCrackPrompt, openCheckPrompt, openDecryptGame, openSelfDestruct, tripTracer, flagRescan, evadeTracer, checkResults, crackAttempts, gmMode, onToggleGm, onSwitchScenario, onLoadScenarioUrl, onOpenScenarioPaste, onShareScenario]
+    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, resetProgress, openPasswordPrompt, openCrackPrompt, openCheckPrompt, openDecryptGame, openSelfDestruct, tripTracer, flagRescan, evadeTracer, resolveDecryptTarget, lang, checkResults, crackAttempts, gmMode, onToggleGm, onSwitchScenario, onLoadScenarioUrl, onOpenScenarioPaste, onShareScenario]
   )
 
   const inputReady = animIdx >= history.length
@@ -575,7 +602,7 @@ export default function Terminal({
       {iceAlert && <IceAlert message={iceAlert} onClose={() => setIceAlert(null)} />}
       {decryptGame && (
         <DecryptGame
-          target={decryptGame.node.decryptTarget}
+          target={decryptGame.target ?? decryptGame.node.decryptTarget}
           attempts={decryptGame.node.decryptAttempts ?? 6}
           label={decryptGame.node.decryptLabel}
           onWin={handleDecryptWin}

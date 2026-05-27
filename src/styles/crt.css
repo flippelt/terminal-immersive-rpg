@@ -158,16 +158,28 @@
 .theme-switcher {
   position: absolute;
   bottom: 12px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 18px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px;
   z-index: 6;
   font-size: 0.7em;
   /* Match the active theme's typeface, not a generic UI font. */
   font-family: var(--font), monospace;
+}
+
+.switcher__label {
+  margin: 2px 0 0;
+  font-size: 0.82em;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.switcher__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .theme-switcher button {
@@ -181,9 +193,8 @@
 
 .theme-switcher__menu {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px;
+  flex-direction: column;
+  gap: 4px;
   max-width: min(80vw, 640px);
   padding: 8px 10px;
   border: 1px solid color-mix(in srgb, var(--fg) 40%, transparent);

@@ -51,6 +51,24 @@ export default function App() {
   // GM mode is session-only by design — don't persist (default off each load).
   const [gmMode, setGmMode] = useState(false)
 
+  // UI language (en | pt). Persisted; defaults to English. Commands stay the
+  // same in both — only built-in UI strings and word pools are localized.
+  const [lang, setLang] = useState(() => {
+    try {
+      return localStorage.getItem('tirpg.lang') || 'en'
+    } catch {
+      return 'en'
+    }
+  })
+  const changeLang = useCallback((l) => {
+    setLang(l)
+    try {
+      localStorage.setItem('tirpg.lang', l)
+    } catch {
+      // storage unavailable — language still applies for the session
+    }
+  }, [])
+
   // A GM-loaded custom scenario (from a URL, pasted JSON, or a share link).
   // When set it takes over from the repo theme/scenario selection until
   // cleared. The raw bundle is kept so it can be re-encoded into a link.
@@ -213,6 +231,10 @@ export default function App() {
     document.title = `${prefix}${theme.header ?? theme.name ?? 'Terminal // RPG'}`
   }, [theme])
 
+  useEffect(() => {
+    document.documentElement.lang = lang === 'pt' ? 'pt-br' : 'en'
+  }, [lang])
+
   // Hidden GM toggle: Ctrl+Shift+G. Also available via the `gm` command.
   useEffect(() => {
     const onKey = (e) => {
@@ -240,6 +262,7 @@ export default function App() {
         <Terminal
           theme={theme}
           themes={THEMES}
+          lang={lang}
           onSwitchTheme={setTheme}
           onSwitchScenario={switchScenario}
           onLoadScenarioUrl={loadScenarioUrl}
@@ -257,6 +280,8 @@ export default function App() {
         gmMode={gmMode}
         disabled={disabledThemes}
         onToggleDisabled={toggleThemeDisabled}
+        lang={lang}
+        onSetLang={changeLang}
       />
       <AudioToggle />
       {pasteOpen && (

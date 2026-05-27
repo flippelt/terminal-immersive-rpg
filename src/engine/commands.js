@@ -404,7 +404,8 @@ const COMMANDS = {
       if (n.crackDC != null) parts.push(`DC:${n.crackDC}`)
       if (n.crackable === false) parts.push('nocrack')
       if (n.checkDC != null) parts.push(`checkDC:${n.checkDC}`)
-      if (n.decryptTarget) parts.push(`decryptWord:${n.decryptTarget}`)
+      const word = ctx.resolveDecryptTarget?.(p, n) ?? n.decryptTarget
+      if (word) parts.push(`decryptWord:${word}`)
       if (n.tracer && ctx.theme.tracer) {
         const w = n.tracerSeconds ?? ctx.theme.tracer.seconds ?? 30
         parts.push(`tracer:${w}s`)

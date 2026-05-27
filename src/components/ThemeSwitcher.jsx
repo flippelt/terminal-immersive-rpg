@@ -1,16 +1,22 @@
 import { useEffect, useRef, useState } from 'react'
 
-// Collapsed by default into a trigger button (keeps the bottom of the
-// screen clean even with many systems). Clicking opens the menu above it.
-// Players see only enabled themes; in GM mode every theme is shown with a
-// ×/+ toggle to enable/disable it for players.
+const LANGS = [
+  ['en', 'EN'],
+  ['pt', 'PT']
+]
+
+// Bottom-left control: collapsed into one trigger that opens a panel with
+// the system (theme) chips and a language toggle. Players see only enabled
+// themes; in GM mode every theme shows a ×/+ toggle to enable/disable it.
 export default function ThemeSwitcher({
   themes,
   current,
   onSelect,
   gmMode,
   disabled,
-  onToggleDisabled
+  onToggleDisabled,
+  lang,
+  onSetLang
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -39,6 +45,8 @@ export default function ThemeSwitcher({
     <div className="theme-switcher" ref={ref}>
       {open && (
         <div className="theme-switcher__menu">
+          <p className="switcher__label">system</p>
+          <div className="switcher__row">
           {visible.map((t) => {
             const isOff = disabled?.has(t.id)
             return (
@@ -69,15 +77,30 @@ export default function ThemeSwitcher({
               </span>
             )
           })}
+          </div>
+          <p className="switcher__label">language</p>
+          <div className="switcher__row">
+            {LANGS.map(([code, label]) => (
+              <span key={code} className="switcher-chip">
+                <button
+                  className={code === lang ? 'active' : ''}
+                  onClick={() => onSetLang?.(code)}
+                  title={code === 'pt' ? 'Português' : 'English'}
+                >
+                  {label}
+                </button>
+              </span>
+            ))}
+          </div>
         </div>
       )}
       <button
         className="theme-switcher__trigger"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        title="systems"
+        title="systems & language"
       >
-        {open ? '▾' : '▴'} {current}
+        {open ? '▾' : '▴'} {current} · {(lang ?? 'en').toUpperCase()}
       </button>
     </div>
   )
