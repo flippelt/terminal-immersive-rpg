@@ -1,6 +1,17 @@
 {
   "id": "mechanicus-archive",
   "name": "Magos' archive — STC fragments",
+  "tracer": {
+    "seconds": 30,
+    "penalty": 7,
+    "startAfter": 1,
+    "nocrackSeconds": 5,
+    "label": "MACHINE-SPIRIT",
+    "active": "COGITATOR SANCTION RISING",
+    "complete": "HERETEK FLAGGED — SANCTION DISPATCHED",
+    "evaded": "rites of concealment accepted. the machine-spirit relents."
+  },
+  "aliases": { "auspex": "check", "scrutinize": "check" },
   "motd": [
     "++ CREDO OMNISSIAH ++",
     "the flesh is weak. the machine is eternal.",

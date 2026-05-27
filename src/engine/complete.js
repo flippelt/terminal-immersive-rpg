@@ -7,9 +7,9 @@ import { normalizePath, listDir } from './filesystem.js'
 
 const BUILTINS = [
   'help', 'ls', 'cd', 'cat', 'pwd', 'whoami', 'date', 'clear', 'motd',
-  'theme', 'scenario', 'reboot', 'crack', 'decrypt', 'volume'
+  'theme', 'scenario', 'reboot', 'check', 'crack', 'decrypt', 'volume'
 ]
-const FILE_ARG = new Set(['cat', 'cd', 'ls', 'crack', 'decrypt'])
+const FILE_ARG = new Set(['cat', 'cd', 'ls', 'check', 'crack', 'decrypt'])
 
 function commonPrefix(strs) {
   if (strs.length === 0) return ''

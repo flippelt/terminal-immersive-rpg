@@ -4,10 +4,23 @@
   "tracer": {
     "seconds": 30,
     "penalty": 7,
+    "startAfter": 1,
+    "nocrackSeconds": 3,
     "label": "ICE TRACE",
     "active": "ICE TRACE ACTIVE",
-    "complete": "TRACE COMPLETE — LOCATION FIXED"
+    "complete": "TRACE COMPLETE — LOCATION FIXED",
+    "evaded": ">>> ICE trace evaded — connection scrubbed.",
+    "checkAlert": "SUSPICIOUS ACTIVITY DETECTED (REPEATED SCAN)",
+    "caught": {
+      "popups": ["FOUND YOU!", "FOUND YOU", "I SEE YOU", "GOTCHA", "TOO SLOW", "NICE TRY, NETRUNNER", "FOUND YOU!"],
+      "popupCount": 16,
+      "finalText": "FOUND YOU",
+      "_smiley": ":)",
+      "hold": 5
+    }
   },
+  "aliases": { "scan": "check", "probe": "check" },
+  "checkMisleadsOnFail": true,
   "events": {
     "/blackbox.dat": [
       { "text": ">>> UNAUTHORIZED READ DETECTED", "type": "err" },

@@ -3,8 +3,12 @@ locked: true
 password: ZER0-DAY
 crackable: true
 crackDC: 12
+checkDC: 12
 crackAttempts: 3
 crackTime: 5000
+tracer: true
+tracerSeconds: 25
+tracerStartAfter: 0
 lockLabel: PEELING ENCRYPTION ONION
 crackSuccessMessage: FILE OPENED. AGENT TRACE: nominal.
 reveals: /blackbox.dat

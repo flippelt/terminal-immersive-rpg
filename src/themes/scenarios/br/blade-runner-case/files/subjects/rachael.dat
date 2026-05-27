@@ -3,6 +3,9 @@ locked: true
 password: NEXUS-7
 crackTime: 5500
 crackable: true
+crackDC: 14
+crackAttempts: 3
+tracer: true
 lockLabel: BYPASSING TYRELL CIPHER
 crackSuccessMessage: tyrell vault peeled open. she doesn't know what she is.
 ---

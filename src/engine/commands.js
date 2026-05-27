@@ -39,6 +39,7 @@ const help = (extra = []) => [
   { text: '  sharescenario         copy a link that embeds the loaded scenario' },
   { text: '  reboot                cold restart' },
   { text: '  reset                 wipe this scenario’s progress' },
+  { text: '  check <file>          scan a file: lock, brute-force & surveillance' },
   { text: '  crack <file>          brute-force a locked file' },
   { text: '  decrypt <file> <key>  unlock with password' },
   { text: '  volume [0-100|mute]   audio level' },
@@ -168,6 +169,42 @@ const COMMANDS = {
       return [{ text: `cd: ${target}: not a directory`, type: 'err' }]
     ctx.setCwd(target)
     return []
+  },
+
+  // Recon: read a file's security posture — encryption, brute-force, and
+  // (crucially) whether it is *watched* (arms the tracer on intrusion).
+  // Passive & free by default; if the file sets `checkDC` the scan becomes a
+  // roll, resolved ONCE per file (its quality scales with the result). A
+  // second scan of the same file raises a (configurable) suspicious-activity
+  // alert — it warns, it does NOT start the trace. GM mode sees the truth.
+  check: (ctx) => {
+    if (!ctx.args[0]) return [{ text: 'check: missing operand', type: 'err' }]
+    const { path, node } = resolveTarget(ctx, ctx.args[0])
+    if (!node) return [{ text: `check: ${path}: no such file`, type: 'err' }]
+    if (node.type !== 'file')
+      return [{ text: `check: ${path}: is a directory`, type: 'err' }]
+    const locked = isLocked(node, ctx, path)
+
+    if (ctx.gmMode) {
+      return buildCheckLines(ctx.theme, path, node, { tier: 'precise', locked, gm: true })
+    }
+    if (locked && node.checkDC != null) {
+      const prev = ctx.checkResults?.get(path)
+      if (prev) {
+        // Already scanned once. A repeat scan trips a suspicious-activity
+        // alert if configured (warning only — never starts the trace), and
+        // burns one of the file's startAfter "grace" attempts.
+        const alert = node.checkAlert ?? ctx.theme.tracer?.checkAlert
+        if (alert) ctx.flagRescan?.(path, alert)
+        return [
+          { text: `${path} — re-scan; using cached result.`, type: 'muted' },
+          ...buildCheckLines(ctx.theme, path, node, { tier: prev, locked })
+        ]
+      }
+      ctx.openCheckPrompt?.(path, node)
+      return [{ text: `${path} — running scan. enter your roll.`, type: 'muted' }]
+    }
+    return buildCheckLines(ctx.theme, path, node, { tier: 'precise', locked })
   },
 
   cat: (ctx) => {
@@ -412,7 +449,17 @@ const COMMANDS = {
       const msg =
         node.crackFailMessage ??
         'crack: encryption hardened — password required.'
-      return [{ text: msg, type: 'err' }]
+      const lines = [{ text: msg, type: 'err' }]
+      // Brute-forcing a hardened, *watched* file trips a fast trace.
+      if (node.tracer && ctx.theme.tracer) {
+        const secs = node.tracerNocrackSeconds ?? ctx.theme.tracer.nocrackSeconds ?? 5
+        ctx.tripTracer?.(secs)
+        lines.push({
+          text: `>>> intrusion on hardened node logged — ${ctx.theme.tracer.label ?? 'TRACE'} active (${secs}s)`,
+          type: 'err'
+        })
+      }
+      return lines
     }
     // Difficulty check: GM set a crackDC. Player rolls and enters the
     // result in a dialog; the modal handler in Terminal does the compare.
@@ -530,6 +577,73 @@ function buildEventLines(theme, path) {
   return ev.map((l) => (typeof l === 'string' ? { text: l } : l))
 }
 
+// Render a `check` scan. `tier` scales detail with the scan roll:
+//   precise   — full posture (window, and DC/penalty/pwd in GM mode)
+//   ambiguous — hedged: "possible monitoring?", no fine numbers
+//   fail      — inconclusive, no reliable data
+//   false     — a misleading reading (reports the OPPOSITE surveillance);
+//               only used when checkMisleadsOnFail is enabled
+export function buildCheckLines(theme, path, node, { tier = 'precise', locked = false, gm = false } = {}) {
+  const out = [{ text: `SECURITY SCAN // ${path}`, type: 'ok' }]
+  if (!locked) {
+    out.push({ text: '  state: OPEN — no protection detected', type: 'muted' })
+    return out
+  }
+  if (tier === 'fail') {
+    out.push({ text: '  scan inconclusive — no reliable data.', type: 'muted' })
+    return out
+  }
+  const watched = !!(node.tracer && theme.tracer)
+  const label = theme.tracer?.label ?? 'TRACE'
+  out.push({ text: '  state: ENCRYPTED' })
+
+  if (tier === 'false') {
+    // Deliberately wrong: invert the surveillance reading.
+    out.push({ text: '  brute-force: possible', type: 'muted' })
+    out.push(
+      watched
+        ? { text: '  surveillance: clear', type: 'muted' }
+        : { text: `  surveillance: MONITORED — ${label} on intrusion ⚠`, type: 'err' }
+    )
+    out.push({ text: '  [low-confidence scan]', type: 'muted' })
+    return out
+  }
+
+  if (node.crackable === false) {
+    out.push({ text: '  brute-force: HARDENED — password required', type: 'muted' })
+  } else if (node.crackDC != null) {
+    const dc = gm ? ` (DC ${node.crackDC})` : ''
+    out.push({ text: `  brute-force: possible — difficulty check${dc}`, type: 'muted' })
+  } else {
+    out.push({ text: '  brute-force: possible', type: 'muted' })
+  }
+
+  if (tier === 'ambiguous') {
+    out.push({
+      text: watched
+        ? '  surveillance: signal noisy — possible monitoring?'
+        : '  surveillance: signal noisy — inconclusive',
+      type: 'muted'
+    })
+    return out
+  }
+
+  // precise
+  if (watched) {
+    const secs = node.tracerSeconds ?? theme.tracer.seconds ?? 30
+    out.push({ text: `  surveillance: MONITORED — ${label} (${secs}s window) on intrusion ⚠`, type: 'err' })
+    if (gm) {
+      const penalty = node.tracerPenalty ?? theme.tracer.penalty ?? 7
+      const startAfter = node.tracerStartAfter ?? theme.tracer.startAfter ?? 0
+      out.push({ text: `  ★ tracer: -${penalty}s/fail · arms after ${startAfter} fail(s)`, type: 'muted' })
+    }
+  } else {
+    out.push({ text: '  surveillance: clear', type: 'muted' })
+  }
+  if (gm && node.password) out.push({ text: `  ★ pwd:${node.password}`, type: 'muted' })
+  return out
+}
+
 // The brute-force success sequence. Used by the plain crack flow and by
 // the difficulty-check flow (after the roll passes, in Terminal).
 export function buildCrackLines(theme, path, node, unlock, fs) {
@@ -574,8 +688,12 @@ export function buildDecryptLines(theme, path, node, key, unlock, fs) {
 export function runCommand(input, ctx) {
   const trimmed = input.trim()
   if (!trimmed) return []
-  const [name, ...args] = trimmed.split(/\s+/)
+  const [typed, ...args] = trimmed.split(/\s+/)
+  // Themed command names: a theme/scenario may alias its own verb onto a
+  // built-in (e.g. `auspex` -> `check`, `audit` -> `check`). A static
+  // custom command of the same name still wins over the alias.
   const customs = ctx.theme.commands ?? {}
+  const name = !customs[typed] && ctx.theme.aliases?.[typed] ? ctx.theme.aliases[typed] : typed
   const handler = COMMANDS[name] ?? makeCustom(customs[name])
   if (!handler) {
     const hint = ctx.theme.unknownHint ?? 'type `help` for available commands.'

@@ -2,6 +2,7 @@
 locked: true
 password: OBSIDIAN-SEVEN
 crackable: false
+tracer: true
 crackFailMessage: ++ INQUISITORIAL SEAL. BRUTE FORCE IS HERESY. KEY REQUIRED. ++
 decryptLabel: BREAKING THE INQUISITORIAL SEAL
 ---

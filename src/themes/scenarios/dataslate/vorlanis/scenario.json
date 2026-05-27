@@ -1,6 +1,17 @@
 {
   "id": "vorlanis",
   "name": "Cadian 412th — Vorlanis Secundus",
+  "tracer": {
+    "seconds": 30,
+    "penalty": 7,
+    "startAfter": 1,
+    "nocrackSeconds": 5,
+    "label": "AUSPEX TRACE",
+    "active": "INLOAD TRACE — INQUISITORIAL AUSPEX",
+    "complete": "LOCATION INLOADED — =][= NOTIFIED",
+    "evaded": "trace jammed with scrapcode."
+  },
+  "aliases": { "auspex": "check" },
   "motd": [
     "++ ADEPTUS ADMINISTRATUM — FIELD DATASLATE ++",
     "theatre: Vorlanis Secundus  //  regiment: Cadian 412th",

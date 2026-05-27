@@ -2,6 +2,7 @@
 locked: true
 password: OPERATION-PHARMAKOS
 crackable: false
+tracer: true
 crackFailMessage: FEDERAL ENCRYPTION. ATTEMPT FLAGGED TO INTERNAL AFFAIRS.
 decryptLabel: FEDERAL CERTIFICATE EXCHANGE
 decryptTime: 2500

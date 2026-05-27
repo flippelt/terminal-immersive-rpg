@@ -1,6 +1,17 @@
 {
   "id": "blade-runner-case",
   "name": "Case 4127-A — Nexus-6 escape",
+  "tracer": {
+    "seconds": 30,
+    "penalty": 7,
+    "startAfter": 1,
+    "nocrackSeconds": 5,
+    "label": "TYRELL TRACE",
+    "active": "TYRELL UPLINK — TRACING ORIGIN",
+    "complete": "ORIGIN FLAGGED — BLADE RUNNER DISPATCHED",
+    "evaded": "uplink severed. you're a ghost again."
+  },
+  "aliases": { "scan": "check" },
   "motd": [
     "ESPER PHOTO ANALYZER",
     "load and zoom images. issue retirement notices.",

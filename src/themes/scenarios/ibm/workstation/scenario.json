@@ -1,6 +1,17 @@
 {
   "id": "workstation",
   "name": "Dr. Halden's workstation",
+  "tracer": {
+    "seconds": 30,
+    "penalty": 7,
+    "startAfter": 1,
+    "nocrackSeconds": 5,
+    "label": "SYS AUDIT",
+    "active": "SYSTEM AUDIT IN PROGRESS",
+    "complete": "INTRUSION LOGGED — OPERATOR NOTIFIED",
+    "evaded": "audit trail cleared."
+  },
+  "aliases": { "audit": "check" },
   "login": {
     "title": "HALDEN CYBERNETICS // AUTHORIZED USERS ONLY",
     "label": "password (owner's surname):",

@@ -2,6 +2,7 @@
 locked: true
 password: BLACKSITE-NINE
 crackable: false
+tracer: true
 crackFailMessage: vault.dat: hardened encryption. brute force will not work. key required.
 decryptLabel: OPENING THE VAULT
 ---

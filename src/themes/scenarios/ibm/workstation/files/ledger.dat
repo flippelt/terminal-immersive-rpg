@@ -3,6 +3,7 @@ locked: true
 password: LEDGER-7
 crackable: true
 crackDC: 12
+tracer: true
 crackAttempts: 3
 lockLabel: BRUTE-FORCING LEDGER CIPHER
 crackSuccessMessage: ledger.dat decrypted. accounts exposed.

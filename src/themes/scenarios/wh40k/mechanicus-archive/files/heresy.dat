@@ -2,6 +2,7 @@
 locked: true
 password: ++LORGAR++
 crackable: false
+tracer: true
 crackFailMessage: ++ THE MACHINE SPIRIT REFUSES. INQUISITION TRACE INITIATED. ++
 decryptLabel: WHISPERING THE FORBIDDEN NAME
 decryptTime: 3000

@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 // Top-right corner popup: a real-time "you are being traced" countdown.
 // Silent. `endsAt` is a timestamp (ms); failed crack attempts move it
-// earlier (handled by Terminal). Reaching 0 shows TRACE COMPLETE.
-export default function Tracer({ endsAt, config = {} }) {
-  const total = config.seconds ?? 30
+// earlier (handled by Terminal). Reaching 0 shows TRACE COMPLETE and fires
+// onComplete once (Terminal may then run the "caught" climax).
+export default function Tracer({ endsAt, total: totalProp, config = {}, onComplete }) {
+  const total = totalProp ?? config.seconds ?? 30
   const [now, setNow] = useState(() => Date.now())
 
   useEffect(() => {
@@ -15,6 +16,14 @@ export default function Tracer({ endsAt, config = {} }) {
   const remaining = Math.max(0, Math.ceil((endsAt - now) / 1000))
   const done = remaining <= 0
   const pct = Math.max(0, Math.min(100, (remaining / total) * 100))
+
+  const firedRef = useRef(false)
+  useEffect(() => {
+    if (done && !firedRef.current) {
+      firedRef.current = true
+      onComplete?.()
+    }
+  }, [done, onComplete])
 
   return (
     <div className={`tracer${done ? ' tracer--done' : ''}`} role="status" aria-live="polite">

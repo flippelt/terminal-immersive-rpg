@@ -5,18 +5,31 @@ import InputModal from './InputModal.jsx'
 import ProgressModal from './ProgressModal.jsx'
 import SelfDestructModal from './SelfDestructModal.jsx'
 import Tracer from './Tracer.jsx'
+import TraceCaught from './TraceCaught.jsx'
+import IceAlert from './IceAlert.jsx'
 
 const toLines = (val, type) =>
   (Array.isArray(val) ? val : [val])
     .filter((v) => v != null)
     .map((v) => (typeof v === 'string' ? { text: v, type } : v))
-import { runCommand, buildDecryptLines, buildCrackLines } from '../engine/commands.js'
+import { runCommand, buildDecryptLines, buildCrackLines, buildCheckLines } from '../engine/commands.js'
 import { complete } from '../engine/complete.js'
 import { playBeep, playWhoosh } from '../audio/sfx.js'
 import { scenarioIdsFor } from '../themes/index.js'
 
 let LINE_ID = 0
 const nextId = () => ++LINE_ID
+
+// Effective tracer settings: a watched file may override the theme/scenario
+// defaults via flat front-matter keys, so difficulty lives on the file.
+// `graceLost` is subtracted from startAfter — each repeated scan that trips
+// the ICE alert burns one of the player's free attempts (floored at 0).
+const effTracer = (tr, node, graceLost = 0) => ({
+  seconds: node?.tracerSeconds ?? tr?.seconds ?? 30,
+  penalty: node?.tracerPenalty ?? tr?.penalty ?? 7,
+  startAfter: Math.max(0, (node?.tracerStartAfter ?? tr?.startAfter ?? 0) - graceLost),
+  nocrackSeconds: node?.tracerNocrackSeconds ?? tr?.nocrackSeconds ?? 5
+})
 
 // Unlock progress persists per theme+scenario so a campaign survives a
 // reload/reboot. Cleared with the `reset` command.
@@ -70,6 +83,12 @@ export default function Terminal({
   const [loginTries, setLoginTries] = useState(0)
   const [selfDestruct, setSelfDestruct] = useState(null)
   const [tracerEndsAt, setTracerEndsAt] = useState(null)
+  const [tracerTotal, setTracerTotal] = useState(null)
+  const [caught, setCaught] = useState(null)
+  const [checkResults, setCheckResults] = useState(() => new Map())
+  const [iceAlert, setIceAlert] = useState(null)
+  // path -> number of repeated scans; each burns one startAfter "grace".
+  const scanReductionsRef = useRef(new Map())
   const scrollRef = useRef(null)
 
   // Keep a live ref to history so `advance` always reads the latest array
@@ -87,6 +106,11 @@ export default function Terminal({
     setCrackAttempts(new Map())
     setSelfDestruct(null)
     setTracerEndsAt(null)
+    setTracerTotal(null)
+    setCaught(null)
+    setCheckResults(new Map())
+    setIceAlert(null)
+    scanReductionsRef.current = new Map()
     const needsLogin = !!theme.login
     setAuthed(!needsLogin)
     setLoginTries(0)
@@ -220,20 +244,66 @@ export default function Terminal({
     setModal({ kind: 'decrypt', path, node })
   }, [])
 
+  const openCheckPrompt = useCallback((path, node) => {
+    setModal({ kind: 'check', path, node })
+  }, [])
+
+  // A repeated scan: pop the ICE warning (never arms the tracer) AND burn
+  // one of the file's startAfter "grace" attempts (so re-probing a watched
+  // file makes the eventual trace arm sooner).
+  const flagRescan = useCallback((path, message) => {
+    setIceAlert(message || 'SUSPICIOUS ACTIVITY DETECTED')
+    const m = scanReductionsRef.current
+    m.set(path, (m.get(path) ?? 0) + 1)
+  }, [])
+
+  // Tracer hit zero. If the theme configures a `caught` climax (Cyberpunk),
+  // run it; the sequence reboots the console when it ends.
+  const handleTraceComplete = useCallback(() => {
+    const c = themeRef.current.tracer?.caught
+    if (c) {
+      setTracerEndsAt(null)
+      setCaught(c)
+    }
+  }, [])
+
+  const handleCaughtReboot = useCallback(() => {
+    setCaught(null)
+    reboot()
+  }, [reboot])
+
   const openCrackPrompt = useCallback(
     (path, node) => {
       setModal({ kind: 'crack', path, node })
-      // Cyberpunk-style tracer: starts the first time a guarded file is
-      // cracked. Time + penalty come from theme.tracer (GM-configurable).
+      // Cyberpunk-style tracer. Only files that opt in (`tracer: true`)
+      // arm it. Arm at command time only when the GM set no grace
+      // (startAfter 0 = the default, current behavior); a higher startAfter
+      // delays arming until that many failed attempts (handled below).
       const tr = themeRef.current.tracer
-      if (tr) {
-        setTracerEndsAt((prev) =>
-          prev != null ? prev : Date.now() + (tr.seconds ?? 30) * 1000
-        )
+      if (tr && node.tracer) {
+        const eff = effTracer(tr, node, scanReductionsRef.current.get(path) ?? 0)
+        if (eff.startAfter <= 0) {
+          setTracerEndsAt((prev) => {
+            if (prev != null) return prev
+            setTracerTotal(eff.seconds)
+            return Date.now() + eff.seconds * 1000
+          })
+        }
       }
     },
     []
   )
+
+  // Trip the tracer to a short, fixed countdown — used when a player brute-
+  // forces a hardened (nocrack) watched file. Only ever makes it worse.
+  const tripTracer = useCallback((seconds) => {
+    const s = seconds ?? 5
+    setTracerEndsAt((prev) => {
+      const t = Date.now() + s * 1000
+      return prev == null ? t : Math.min(prev, t)
+    })
+    setTracerTotal((prev) => (prev == null ? s : Math.min(prev, s)))
+  }, [])
 
   const handleModalSubmit = useCallback(
     (value) => {
@@ -243,6 +313,26 @@ export default function Terminal({
       if (kind === 'decrypt') {
         push([
           ...buildDecryptLines(theme, path, node, value, unlock, theme.filesystem),
+          { text: '', instant: true }
+        ])
+        return
+      }
+      if (kind === 'check') {
+        // Scan roll: quality scales with the margin vs checkDC.
+        const roll = parseInt(value, 10)
+        if (!Number.isFinite(roll)) {
+          push([{ text: 'check: enter a number', type: 'err' }, { text: '', instant: true }])
+          return
+        }
+        const margin = roll - node.checkDC
+        const misleads = node.checkMisleadsOnFail ?? themeRef.current.checkMisleadsOnFail ?? false
+        const tier =
+          margin >= 5 ? 'precise' : margin >= -4 ? 'ambiguous' : misleads ? 'false' : 'fail'
+        setCheckResults((m) => new Map(m).set(path, tier))
+        const locked = !!node.locked && !unlocked.has(path)
+        push([
+          { text: `roll ${roll} — SCAN`, type: 'ok' },
+          ...buildCheckLines(theme, path, node, { tier, locked, gm: gmMode }),
           { text: '', instant: true }
         ])
         return
@@ -257,8 +347,14 @@ export default function Terminal({
       }
       const dcNote = gmMode ? ` (DC ${dc})` : ''
       if (roll > dc) {
+        // Cracking it in time beats the trace: stop the tracer (with an
+        // optional GM-defined "evaded" line).
+        const tr = themeRef.current.tracer
+        const tracerWasOn = !!tr && node.tracer && tracerEndsAt != null
+        if (tracerWasOn) setTracerEndsAt(null)
         push([
           { text: `roll ${roll} — SUCCESS${dcNote}`, type: 'ok' },
+          ...(tracerWasOn && tr.evaded ? [{ text: tr.evaded, type: 'ok' }] : []),
           ...buildCrackLines(theme, path, node, unlock, theme.filesystem),
           { text: '', instant: true }
         ])
@@ -266,10 +362,23 @@ export default function Terminal({
       }
       const used = (crackAttempts.get(path) ?? 0) + 1
       setCrackAttempts((m) => new Map(m).set(path, used))
-      // Each failed crack drags the tracer earlier (GM-configurable penalty).
+      // Tracer — only for files that opt in (`tracer: true`):
+      //  • if not yet active, arm it once failed attempts reach the GM's
+      //    grace `startAfter` (>= 1; startAfter 0 already armed at command);
+      //  • if active, each failed attempt drags it earlier by `penalty`.
       const tr = themeRef.current.tracer
-      if (tr) {
-        setTracerEndsAt((t) => (t != null ? t - (tr.penalty ?? 7) * 1000 : t))
+      if (tr && node.tracer) {
+        const eff = effTracer(tr, node, scanReductionsRef.current.get(path) ?? 0)
+        setTracerEndsAt((prev) => {
+          if (prev == null) {
+            if (eff.startAfter >= 1 && used >= eff.startAfter) {
+              setTracerTotal(eff.seconds)
+              return Date.now() + eff.seconds * 1000
+            }
+            return prev
+          }
+          return prev - eff.penalty * 1000
+        })
       }
       const remaining = max - used
       const lines = [{ text: `roll ${roll} — FAILED${dcNote}`, type: 'err' }]
@@ -281,7 +390,7 @@ export default function Terminal({
       lines.push({ text: '', instant: true })
       push(lines)
     },
-    [modal, push, theme, unlock, gmMode, crackAttempts]
+    [modal, push, theme, unlock, gmMode, crackAttempts, tracerEndsAt, unlocked]
   )
 
   const handleModalCancel = useCallback(() => {
@@ -314,7 +423,11 @@ export default function Terminal({
         resetProgress,
         openPasswordPrompt,
         openCrackPrompt,
+        openCheckPrompt,
         openSelfDestruct,
+        tripTracer,
+        flagRescan,
+        checkResults,
         crackAttempts,
         gmMode,
         toggleGm: onToggleGm,
@@ -327,7 +440,7 @@ export default function Terminal({
       if (out.length) push(out)
       push([{ text: '', instant: true }])
     },
-    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, resetProgress, openPasswordPrompt, openCrackPrompt, openSelfDestruct, crackAttempts, gmMode, onToggleGm, onSwitchScenario, onLoadScenarioUrl, onOpenScenarioPaste, onShareScenario]
+    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, resetProgress, openPasswordPrompt, openCrackPrompt, openCheckPrompt, openSelfDestruct, tripTracer, flagRescan, checkResults, crackAttempts, gmMode, onToggleGm, onSwitchScenario, onLoadScenarioUrl, onOpenScenarioPaste, onShareScenario]
   )
 
   const inputReady = animIdx >= history.length
@@ -386,9 +499,9 @@ export default function Terminal({
       )}
       {modal && (
         <InputModal
-          title={`${modal.kind === 'crack' ? 'CRACK' : 'DECRYPT'} // ${modal.path}`}
-          label={modal.kind === 'crack' ? 'enter your roll:' : 'enter key:'}
-          inputType={modal.kind === 'crack' ? 'number' : 'text'}
+          title={`${modal.kind === 'crack' ? 'CRACK' : modal.kind === 'check' ? 'SCAN' : 'DECRYPT'} // ${modal.path}`}
+          label={modal.kind === 'decrypt' ? 'enter key:' : 'enter your roll:'}
+          inputType={modal.kind === 'decrypt' ? 'text' : 'number'}
           onSubmit={handleModalSubmit}
           onCancel={handleModalCancel}
         />
@@ -408,9 +521,11 @@ export default function Terminal({
           onDetonate={handleDetonate}
         />
       )}
-      {tracerEndsAt != null && theme.tracer && (
-        <Tracer endsAt={tracerEndsAt} config={theme.tracer} />
+      {tracerEndsAt != null && theme.tracer && !caught && (
+        <Tracer endsAt={tracerEndsAt} total={tracerTotal} config={theme.tracer} onComplete={handleTraceComplete} />
       )}
+      {caught && <TraceCaught config={caught} onReboot={handleCaughtReboot} />}
+      {iceAlert && <IceAlert message={iceAlert} onClose={() => setIceAlert(null)} />}
     </>
   )
 }
