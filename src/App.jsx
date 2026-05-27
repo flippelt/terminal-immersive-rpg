@@ -173,7 +173,13 @@ export default function App() {
         onToggleDisabled={toggleThemeDisabled}
       />
       <AudioToggle />
-      {idle && <Screensaver onWake={() => setIdle(false)} />}
+      {idle && (
+        <Screensaver
+          onWake={() => setIdle(false)}
+          effect={theme.screensaver}
+          label={theme.name}
+        />
+      )}
     </div>
   )
 }

@@ -130,6 +130,7 @@ src/themes/scenarios/<id>/<nome>.json    campanha
   "font": "'3270 Nerd Font Mono'",   // declarada em src/styles/base.css
   "fontSize": "18px",
   "crt": { "glow": "8px", "typeSpeed": 14 },
+  "screensaver": "starfield",          // matrix | starfield | rain | sweep | static | bounce
   "sounds": {                         // opcional — defaults sensatos se ausente
     "keystroke": { "freq": 1400, "duration": 0.012, "type": "square" },
     "beep":      { "freq": 880,  "duration": 0.06,  "type": "sine" },

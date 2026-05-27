@@ -15,6 +15,7 @@
   "font": "'Terminal Grotesque'",
   "fontSize": "20px",
   "crt": { "glow": "10px", "typeSpeed": 16 },
+  "screensaver": "static",
   "sounds": {
     "whoosh": { "duration": 0.9, "freqStart": 70, "freqEnd": 640, "tone": 0.4, "type": "triangle", "gain": 0.2 }
   },

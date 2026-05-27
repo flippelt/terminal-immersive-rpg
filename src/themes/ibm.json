@@ -15,6 +15,7 @@
   "font": "'3270 Nerd Font Mono'",
   "fontSize": "18px",
   "crt": { "glow": "9px", "typeSpeed": 11 },
+  "screensaver": "matrix",
   "sounds": {
     "whoosh": { "duration": 0.5, "freqStart": 180, "freqEnd": 1300, "tone": 0.5, "type": "triangle", "gain": 0.16 }
   },
