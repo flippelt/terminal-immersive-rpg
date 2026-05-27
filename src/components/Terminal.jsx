@@ -8,6 +8,7 @@ import Tracer from './Tracer.jsx'
 import TraceCaught from './TraceCaught.jsx'
 import IceAlert from './IceAlert.jsx'
 import DecryptGame from './DecryptGame.jsx'
+import Detonation from './Detonation.jsx'
 
 const toLines = (val, type) =>
   (Array.isArray(val) ? val : [val])
@@ -79,6 +80,7 @@ export default function Terminal({
   const [checkResults, setCheckResults] = useState(() => new Map())
   const [iceAlert, setIceAlert] = useState(null)
   const [decryptGame, setDecryptGame] = useState(null) // { path, node }
+  const [detonating, setDetonating] = useState(null) // selfDestruct config
   // path -> number of repeated scans; each burns one startAfter "grace".
   const scanReductionsRef = useRef(new Map())
   const scrollRef = useRef(null)
@@ -103,6 +105,7 @@ export default function Terminal({
     setCheckResults(new Map())
     setIceAlert(null)
     setDecryptGame(null)
+    setDetonating(null)
     scanReductionsRef.current = new Map()
     const needsLogin = !!theme.login
     setAuthed(!needsLogin)
@@ -218,11 +221,15 @@ export default function Terminal({
   const handleDetonate = useCallback(() => {
     const c = selfDestruct ?? {}
     setSelfDestruct(null)
-    push([
-      ...toLines(c.detonate ?? 'DETONATION.', 'err'),
-      { text: '', instant: true }
-    ])
-  }, [selfDestruct, push])
+    // Hand off to the voxel detonation overlay, which floods the screen and
+    // reboots the console (so the detonate lines aren't shown behind it).
+    setDetonating({ detonate: c.detonate ?? 'DETONATION.' })
+  }, [selfDestruct])
+
+  const handleDetonationReboot = useCallback(() => {
+    setDetonating(null)
+    reboot()
+  }, [reboot])
 
   const handleAbort = useCallback(() => {
     const c = selfDestruct ?? {}
@@ -583,6 +590,7 @@ export default function Terminal({
           onCancel={handleDecryptCancel}
         />
       )}
+      {detonating && <Detonation config={detonating} onReboot={handleDetonationReboot} />}
     </>
   )
 }
