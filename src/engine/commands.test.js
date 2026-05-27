@@ -276,6 +276,26 @@ describe('crack on a hardened watched file', () => {
   })
 })
 
+describe('per-file tracer overrides', () => {
+  it('check shows the file-overridden window over the theme default', () => {
+    const fsO = {
+      '/': { type: 'dir', children: ['o.dat'] },
+      '/o.dat': { type: 'file', locked: true, password: 'X', crackable: true, crackDC: 10, tracer: true, tracerSeconds: 12 }
+    }
+    const out = runCommand('check o.dat', makeCtx({ fs: fsO, theme: { commands: {}, locks: {}, tracer: { seconds: 30, label: 'T' } } }))
+    expect(out.some((l) => l.text.includes('12s window'))).toBe(true)
+  })
+  it('nocrack fast-trace honors the file override', () => {
+    const fsO = {
+      '/': { type: 'dir', children: ['o.dat'] },
+      '/o.dat': { type: 'file', locked: true, password: 'X', crackable: false, tracer: true, tracerNocrackSeconds: 3 }
+    }
+    const tripTracer = vi.fn()
+    runCommand('crack o.dat', makeCtx({ fs: fsO, tripTracer, theme: { commands: {}, locks: {}, tracer: { nocrackSeconds: 5, label: 'T' } } }))
+    expect(tripTracer).toHaveBeenCalledWith(3)
+  })
+})
+
 describe('command aliases', () => {
   it('resolves a themed alias to a built-in', () => {
     const out = runCommand(

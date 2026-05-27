@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 // Silent. `endsAt` is a timestamp (ms); failed crack attempts move it
 // earlier (handled by Terminal). Reaching 0 shows TRACE COMPLETE and fires
 // onComplete once (Terminal may then run the "caught" climax).
-export default function Tracer({ endsAt, config = {}, onComplete }) {
-  const total = config.seconds ?? 30
+export default function Tracer({ endsAt, total: totalProp, config = {}, onComplete }) {
+  const total = totalProp ?? config.seconds ?? 30
   const [now, setNow] = useState(() => Date.now())
 
   useEffect(() => {

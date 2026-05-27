@@ -19,6 +19,15 @@ import { scenarioIdsFor } from '../themes/index.js'
 let LINE_ID = 0
 const nextId = () => ++LINE_ID
 
+// Effective tracer settings: a watched file may override the theme/scenario
+// defaults via flat front-matter keys, so difficulty lives on the file.
+const effTracer = (tr, node) => ({
+  seconds: node?.tracerSeconds ?? tr?.seconds ?? 30,
+  penalty: node?.tracerPenalty ?? tr?.penalty ?? 7,
+  startAfter: node?.tracerStartAfter ?? tr?.startAfter ?? 0,
+  nocrackSeconds: node?.tracerNocrackSeconds ?? tr?.nocrackSeconds ?? 5
+})
+
 // Unlock progress persists per theme+scenario so a campaign survives a
 // reload/reboot. Cleared with the `reset` command.
 const progressKey = (t) => `tirpg.progress.${t.id}.${t.scenarioId ?? 'default'}`
@@ -71,6 +80,7 @@ export default function Terminal({
   const [loginTries, setLoginTries] = useState(0)
   const [selfDestruct, setSelfDestruct] = useState(null)
   const [tracerEndsAt, setTracerEndsAt] = useState(null)
+  const [tracerTotal, setTracerTotal] = useState(null)
   const [caught, setCaught] = useState(null)
   const scrollRef = useRef(null)
 
@@ -89,6 +99,7 @@ export default function Terminal({
     setCrackAttempts(new Map())
     setSelfDestruct(null)
     setTracerEndsAt(null)
+    setTracerTotal(null)
     setCaught(null)
     const needsLogin = !!theme.login
     setAuthed(!needsLogin)
@@ -246,10 +257,15 @@ export default function Terminal({
       // (startAfter 0 = the default, current behavior); a higher startAfter
       // delays arming until that many failed attempts (handled below).
       const tr = themeRef.current.tracer
-      if (tr && node.tracer && (tr.startAfter ?? 0) <= 0) {
-        setTracerEndsAt((prev) =>
-          prev != null ? prev : Date.now() + (tr.seconds ?? 30) * 1000
-        )
+      if (tr && node.tracer) {
+        const eff = effTracer(tr, node)
+        if (eff.startAfter <= 0) {
+          setTracerEndsAt((prev) => {
+            if (prev != null) return prev
+            setTracerTotal(eff.seconds)
+            return Date.now() + eff.seconds * 1000
+          })
+        }
       }
     },
     []
@@ -258,10 +274,12 @@ export default function Terminal({
   // Trip the tracer to a short, fixed countdown — used when a player brute-
   // forces a hardened (nocrack) watched file. Only ever makes it worse.
   const tripTracer = useCallback((seconds) => {
+    const s = seconds ?? 5
     setTracerEndsAt((prev) => {
-      const t = Date.now() + (seconds ?? 5) * 1000
+      const t = Date.now() + s * 1000
       return prev == null ? t : Math.min(prev, t)
     })
+    setTracerTotal((prev) => (prev == null ? s : Math.min(prev, s)))
   }, [])
 
   const handleModalSubmit = useCallback(
@@ -307,14 +325,16 @@ export default function Terminal({
       //  • if active, each failed attempt drags it earlier by `penalty`.
       const tr = themeRef.current.tracer
       if (tr && node.tracer) {
-        const startAfter = tr.startAfter ?? 0
+        const eff = effTracer(tr, node)
         setTracerEndsAt((prev) => {
           if (prev == null) {
-            return startAfter >= 1 && used >= startAfter
-              ? Date.now() + (tr.seconds ?? 30) * 1000
-              : prev
+            if (eff.startAfter >= 1 && used >= eff.startAfter) {
+              setTracerTotal(eff.seconds)
+              return Date.now() + eff.seconds * 1000
+            }
+            return prev
           }
-          return prev - (tr.penalty ?? 7) * 1000
+          return prev - eff.penalty * 1000
         })
       }
       const remaining = max - used
@@ -456,7 +476,7 @@ export default function Terminal({
         />
       )}
       {tracerEndsAt != null && theme.tracer && !caught && (
-        <Tracer endsAt={tracerEndsAt} config={theme.tracer} onComplete={handleTraceComplete} />
+        <Tracer endsAt={tracerEndsAt} total={tracerTotal} config={theme.tracer} onComplete={handleTraceComplete} />
       )}
       {caught && <TraceCaught config={caught} onReboot={handleCaughtReboot} />}
     </>

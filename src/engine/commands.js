@@ -196,8 +196,15 @@ const COMMANDS = {
       out.push({ text: '  brute-force: possible', type: 'muted' })
     }
     if (node.tracer && ctx.theme.tracer) {
-      const label = ctx.theme.tracer.label ?? 'TRACE'
-      out.push({ text: `  surveillance: MONITORED — ${label} on intrusion ⚠`, type: 'err' })
+      const tr = ctx.theme.tracer
+      const label = tr.label ?? 'TRACE'
+      const secs = node.tracerSeconds ?? tr.seconds ?? 30
+      out.push({ text: `  surveillance: MONITORED — ${label} (${secs}s window) on intrusion ⚠`, type: 'err' })
+      if (ctx.gmMode) {
+        const penalty = node.tracerPenalty ?? tr.penalty ?? 7
+        const startAfter = node.tracerStartAfter ?? tr.startAfter ?? 0
+        out.push({ text: `  ★ tracer: -${penalty}s/fail · arms after ${startAfter} fail(s)`, type: 'muted' })
+      }
     } else {
       out.push({ text: '  surveillance: clear', type: 'muted' })
     }
@@ -452,7 +459,7 @@ const COMMANDS = {
       const lines = [{ text: msg, type: 'err' }]
       // Brute-forcing a hardened, *watched* file trips a fast trace.
       if (node.tracer && ctx.theme.tracer) {
-        const secs = ctx.theme.tracer.nocrackSeconds ?? 5
+        const secs = node.tracerNocrackSeconds ?? ctx.theme.tracer.nocrackSeconds ?? 5
         ctx.tripTracer?.(secs)
         lines.push({
           text: `>>> intrusion on hardened node logged — ${ctx.theme.tracer.label ?? 'TRACE'} active (${secs}s)`,

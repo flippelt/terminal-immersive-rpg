@@ -6,6 +6,8 @@ crackDC: 12
 crackAttempts: 3
 crackTime: 5000
 tracer: true
+tracerSeconds: 25
+tracerStartAfter: 0
 lockLabel: PEELING ENCRYPTION ONION
 crackSuccessMessage: FILE OPENED. AGENT TRACE: nominal.
 reveals: /blackbox.dat
