@@ -227,6 +227,17 @@ describe('loadscenario', () => {
   })
 })
 
+describe('sharescenario', () => {
+  it('prints the link when a custom scenario is active', () => {
+    const out = runCommand('sharescenario', makeCtx({ shareScenario: () => 'https://x/?scenario64=abc' }))
+    expect(out.some((l) => l.text.includes('scenario64=abc'))).toBe(true)
+  })
+  it('errors when no custom scenario is loaded', () => {
+    const out = runCommand('sharescenario', makeCtx({ shareScenario: () => null }))
+    expect(out[0].type).toBe('err')
+  })
+})
+
 describe('cd', () => {
   it('rejects a non-directory', () => {
     const out = runCommand('cd note.txt', makeCtx())
