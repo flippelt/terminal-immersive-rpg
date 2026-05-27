@@ -1,5 +1,7 @@
 # Terminal Imersivo para RPG
 
+[English](README.en.md) · **Português**
+
 ### → [**LIVE DEMO**](https://flippelt.github.io/Immersive-Terminal-for-RPGs/demo/) ←
 
 Um site que simula um terminal de console retrô (estilo *cool-retro-term*) para
