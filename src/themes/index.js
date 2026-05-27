@@ -64,7 +64,12 @@ function buildFilesystem(entries) {
       ensureDir(cur)
     }
     addChild(cur === '' ? '/' : cur, parts[parts.length - 1])
-    fs[path] = { type: 'file', content, ...meta }
+    const node = { type: 'file', content, ...meta }
+    // Decrypt minigame availability: `decryptGame` if set, else default by
+    // crackability (nocrack files get it). Pick a target keyword per file at
+    // build time so it's stable and readable via `gmsheet`.
+    if (node.decryptGame ?? node.crackable === false) node.decryptTarget ??= pickWord(node)
+    fs[path] = node
   }
 
   for (const node of Object.values(fs)) {
@@ -91,9 +96,6 @@ for (const [key, raw] of Object.entries(fileModules)) {
   if (!m) continue
   const [, themeId, scenarioId, rel] = m
   const { meta, content } = parseFrontMatter(raw)
-  // For decrypt-minigame files, pick the target keyword once at load so the
-  // GM can read it via `gmsheet` (and it stays stable for the session).
-  if (meta.decryptGame) meta.decryptTarget = pickWord(meta)
   const bucket = (FILE_BUCKETS[`${themeId}/${scenarioId}`] ??= [])
   bucket.push({ path: '/' + rel, content, meta })
 }

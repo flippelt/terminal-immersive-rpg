@@ -173,10 +173,13 @@ describe('unlock / decrypt routing', () => {
     runCommand('decrypt safe.dat', makeCtx({ fs: gameFs, openDecryptGame }))
     expect(openDecryptGame).toHaveBeenCalledWith('/safe.dat', gameFs['/safe.dat'])
   })
-  it('decrypt falls back to password unlock when there is no game', () => {
+  it('decrypt on a file with no game reports encryption too high (no unlock fallback)', () => {
     const openPasswordPrompt = vi.fn()
-    runCommand('decrypt plain.dat', makeCtx({ fs: gameFs, openPasswordPrompt }))
-    expect(openPasswordPrompt).toHaveBeenCalledWith('/plain.dat', gameFs['/plain.dat'])
+    const openDecryptGame = vi.fn()
+    const out = runCommand('decrypt plain.dat', makeCtx({ fs: gameFs, openPasswordPrompt, openDecryptGame }))
+    expect(openDecryptGame).not.toHaveBeenCalled()
+    expect(openPasswordPrompt).not.toHaveBeenCalled()
+    expect(out[0].text).toMatch(/encryption level too high/)
   })
   it('gmsheet reveals the decrypt word', () => {
     const out = runCommand('gmsheet', makeCtx({ fs: gameFs, gmMode: true }))

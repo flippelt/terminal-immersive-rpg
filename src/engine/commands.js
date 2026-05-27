@@ -233,7 +233,7 @@ const COMMANDS = {
       // Build the suggestions from what the file actually supports.
       const ways = []
       if (node.crackable !== false) ways.push('`crack <file>`')
-      if (node.decryptGame) ways.push('`decrypt <file>`')
+      if (node.decryptTarget) ways.push('`decrypt <file>`')
       if (node.password) ways.push('`unlock <file> <key>`')
       const hint = ways.length ? `try: ${ways.join(' or ')}` : 'no known way in.'
       return [
@@ -404,7 +404,7 @@ const COMMANDS = {
       if (n.crackDC != null) parts.push(`DC:${n.crackDC}`)
       if (n.crackable === false) parts.push('nocrack')
       if (n.checkDC != null) parts.push(`checkDC:${n.checkDC}`)
-      if (n.decryptGame && n.decryptTarget) parts.push(`decryptWord:${n.decryptTarget}`)
+      if (n.decryptTarget) parts.push(`decryptWord:${n.decryptTarget}`)
       if (n.tracer && ctx.theme.tracer) {
         const w = n.tracerSeconds ?? ctx.theme.tracer.seconds ?? 30
         parts.push(`tracer:${w}s`)
@@ -491,9 +491,10 @@ const COMMANDS = {
   // secure dialog. (This is the classic "decrypt" behavior.)
   unlock: (ctx) => passwordUnlock(ctx, 'unlock'),
 
-  // `decrypt <file>` — discover the key via a Wordle-style minigame when the
-  // file opts in (`decryptGame: true`). Otherwise it falls back to the
-  // password unlock, so existing scenarios keep working.
+  // `decrypt <file>` — discover the key via a Wordle-style minigame. The game
+  // is available when `decryptGame` says so (defaulting on for nocrack files);
+  // otherwise the cipher is too strong to break here (recover the key and use
+  // `unlock`). The target word is chosen at load (see themes/index.js).
   decrypt: (ctx) => {
     const [file] = ctx.args
     if (!file) {
@@ -503,12 +504,19 @@ const COMMANDS = {
       ]
     }
     const { path, node } = resolveTarget(ctx, file)
-    if (node && node.type === 'file' && node.locked && !ctx.unlocked?.has(path) && node.decryptGame && node.decryptTarget) {
+    if (!node) return [{ text: `decrypt: ${path}: no such file`, type: 'err' }]
+    if (node.type !== 'file')
+      return [{ text: `decrypt: ${path}: is a directory`, type: 'err' }]
+    if (!node.locked || ctx.unlocked?.has(path))
+      return [{ text: `decrypt: ${path}: file is not encrypted`, type: 'muted' }]
+    if (node.decryptTarget) {
       ctx.openDecryptGame?.(path, node)
       return [{ text: `${path} — running cipher analysis…`, type: 'muted' }]
     }
-    // No minigame on this file → behave like `unlock`.
-    return passwordUnlock(ctx, 'decrypt')
+    return [
+      { text: `decrypt: ${path}: encryption level too high — cipher cannot be broken from this terminal.`, type: 'err' },
+      { text: 'the key must be recovered elsewhere — then `unlock <file> <key>`.', type: 'muted' }
+    ]
   },
 
   query: (ctx) => runDialog(ctx),
