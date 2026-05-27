@@ -5,6 +5,7 @@ import AudioToggle from './components/AudioToggle.jsx'
 import Screensaver from './components/Screensaver.jsx'
 import ScenarioModal from './components/ScenarioModal.jsx'
 import { setVolume as setAudioVolume, startHum } from './audio/sfx.js'
+import { decodeBundle, shareUrl } from './engine/share.js'
 
 const IDLE_MS = 45000
 import {
@@ -50,9 +51,11 @@ export default function App() {
   // GM mode is session-only by design — don't persist (default off each load).
   const [gmMode, setGmMode] = useState(false)
 
-  // A GM-loaded custom scenario (from a URL or pasted JSON). When set it
-  // takes over from the repo theme/scenario selection until cleared.
+  // A GM-loaded custom scenario (from a URL, pasted JSON, or a share link).
+  // When set it takes over from the repo theme/scenario selection until
+  // cleared. The raw bundle is kept so it can be re-encoded into a link.
   const [customTheme, setCustomTheme] = useState(null)
+  const [customBundle, setCustomBundle] = useState(null)
   const [pasteOpen, setPasteOpen] = useState(false)
   const [loadError, setLoadError] = useState(null)
 
@@ -81,24 +84,30 @@ export default function App() {
     [customTheme, sel]
   )
 
+  const dropCustom = useCallback(() => {
+    setCustomTheme(null)
+    setCustomBundle(null)
+  }, [])
+
   const setTheme = useCallback((themeSkin) => {
     // Switching theme resets to that theme's default scenario and drops
     // any custom scenario that was loaded.
-    setCustomTheme(null)
+    dropCustom()
     setSel({ themeId: themeSkin.id, scenarioId: null })
-  }, [])
+  }, [dropCustom])
 
   const switchScenario = useCallback((scenarioId) => {
-    setCustomTheme(null)
+    dropCustom()
     setSel((s) => ({ ...s, scenarioId }))
-  }, [])
+  }, [dropCustom])
 
-  // Custom-scenario loading (URL or pasted JSON). Composing throws on a
-  // malformed bundle; callers surface the message.
+  // Custom-scenario loading (URL, pasted JSON, or share link). Composing
+  // throws on a malformed bundle; callers surface the message.
   const applyBundle = useCallback((bundle) => {
     const composed = composeCustomScenario(bundle)
     setLoadError(null)
     setCustomTheme(composed)
+    setCustomBundle(bundle)
   }, [])
 
   const loadScenarioUrl = useCallback(
@@ -130,11 +139,30 @@ export default function App() {
 
   const openScenarioPaste = useCallback(() => setPasteOpen(true), [])
 
-  // ?scenarioUrl=<url> loads a custom scenario on first paint.
+  // Build (and copy) a share link that embeds the active custom scenario.
+  const shareScenario = useCallback(() => {
+    if (!customBundle) return null
+    const url = shareUrl(customBundle)
+    navigator.clipboard?.writeText(url).catch(() => {})
+    return url
+  }, [customBundle])
+
+  // Load a custom scenario on first paint: an embedded share link
+  // (?scenario64=) takes precedence over a fetched ?scenarioUrl=.
   useEffect(() => {
-    const url = new URLSearchParams(window.location.search).get('scenarioUrl')
+    const params = new URLSearchParams(window.location.search)
+    const token = params.get('scenario64')
+    if (token) {
+      try {
+        applyBundle(decodeBundle(token))
+      } catch (e) {
+        setLoadError(`shared scenario link is invalid: ${e.message}`)
+      }
+      return
+    }
+    const url = params.get('scenarioUrl')
     if (url) loadScenarioUrl(url)
-  }, [loadScenarioUrl])
+  }, [loadScenarioUrl, applyBundle])
 
   const toggleGm = useCallback(() => setGmMode((m) => !m), [])
 
@@ -216,6 +244,7 @@ export default function App() {
           onSwitchScenario={switchScenario}
           onLoadScenarioUrl={loadScenarioUrl}
           onOpenScenarioPaste={openScenarioPaste}
+          onShareScenario={shareScenario}
           gmMode={gmMode}
           onToggleGm={toggleGm}
         />

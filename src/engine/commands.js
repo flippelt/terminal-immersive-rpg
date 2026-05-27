@@ -36,6 +36,7 @@ const help = (extra = []) => [
   { text: '  theme [id]            switch system' },
   { text: '  scenario [list|load]  switch campaign within a system' },
   { text: '  loadscenario [url]    load a custom scenario (URL or paste JSON)' },
+  { text: '  sharescenario         copy a link that embeds the loaded scenario' },
   { text: '  reboot                cold restart' },
   { text: '  reset                 wipe this scenario’s progress' },
   { text: '  crack <file>          brute-force a locked file' },
@@ -117,6 +118,17 @@ const COMMANDS = {
     }
     ctx.loadScenarioUrl?.(url)
     return [{ text: `fetching scenario from ${url} ...`, type: 'muted' }]
+  },
+
+  sharescenario: (ctx) => {
+    const url = ctx.shareScenario?.()
+    if (!url) {
+      return [{ text: 'sharescenario: load a custom scenario first (`loadscenario`).', type: 'err' }]
+    }
+    return [
+      { text: 'shareable link (copied to clipboard if allowed):', type: 'ok' },
+      { text: url, type: 'muted' }
+    ]
   },
 
   ls: (ctx) => {
