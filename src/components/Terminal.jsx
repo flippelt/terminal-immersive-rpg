@@ -14,22 +14,12 @@ const toLines = (val, type) =>
     .map((v) => (typeof v === 'string' ? { text: v, type } : v))
 import { runCommand, buildDecryptLines, buildCrackLines, buildCheckLines } from '../engine/commands.js'
 import { complete } from '../engine/complete.js'
+import { effTracer, scanTier } from '../engine/tracer.js'
 import { playBeep, playWhoosh } from '../audio/sfx.js'
 import { scenarioIdsFor } from '../themes/index.js'
 
 let LINE_ID = 0
 const nextId = () => ++LINE_ID
-
-// Effective tracer settings: a watched file may override the theme/scenario
-// defaults via flat front-matter keys, so difficulty lives on the file.
-// `graceLost` is subtracted from startAfter — each repeated scan that trips
-// the ICE alert burns one of the player's free attempts (floored at 0).
-const effTracer = (tr, node, graceLost = 0) => ({
-  seconds: node?.tracerSeconds ?? tr?.seconds ?? 30,
-  penalty: node?.tracerPenalty ?? tr?.penalty ?? 7,
-  startAfter: Math.max(0, (node?.tracerStartAfter ?? tr?.startAfter ?? 0) - graceLost),
-  nocrackSeconds: node?.tracerNocrackSeconds ?? tr?.nocrackSeconds ?? 5
-})
 
 // Unlock progress persists per theme+scenario so a campaign survives a
 // reload/reboot. Cleared with the `reset` command.
@@ -248,6 +238,19 @@ export default function Terminal({
     setModal({ kind: 'check', path, node })
   }, [])
 
+  // Clear the tracer when the player gets in cleanly via the inline
+  // `decrypt <file> <key>` path. (The decrypt modal handles its own evade.)
+  const evadeTracer = useCallback(
+    (node) => {
+      const tr = themeRef.current.tracer
+      if (tr && node?.tracer && tracerEndsAt != null) {
+        setTracerEndsAt(null)
+        if (tr.evaded) push([{ text: tr.evaded, type: 'ok' }, { text: '', instant: true }])
+      }
+    },
+    [tracerEndsAt, push]
+  )
+
   // A repeated scan: pop the ICE warning (never arms the tracer) AND burn
   // one of the file's startAfter "grace" attempts (so re-probing a watched
   // file makes the eventual trace arm sooner).
@@ -311,10 +314,15 @@ export default function Terminal({
       const { kind, path, node } = modal
       setModal(null)
       if (kind === 'decrypt') {
-        push([
-          ...buildDecryptLines(theme, path, node, value, unlock, theme.filesystem),
-          { text: '', instant: true }
-        ])
+        const lines = buildDecryptLines(theme, path, node, value, unlock, theme.filesystem)
+        // Getting in cleanly (correct key) on a watched file also evades the
+        // tracer — you're in before the trace finishes.
+        const tr = themeRef.current.tracer
+        if (value === node.password && tr && node.tracer && tracerEndsAt != null) {
+          setTracerEndsAt(null)
+          if (tr.evaded) lines.push({ text: tr.evaded, type: 'ok' })
+        }
+        push([...lines, { text: '', instant: true }])
         return
       }
       if (kind === 'check') {
@@ -324,10 +332,8 @@ export default function Terminal({
           push([{ text: 'check: enter a number', type: 'err' }, { text: '', instant: true }])
           return
         }
-        const margin = roll - node.checkDC
         const misleads = node.checkMisleadsOnFail ?? themeRef.current.checkMisleadsOnFail ?? false
-        const tier =
-          margin >= 5 ? 'precise' : margin >= -4 ? 'ambiguous' : misleads ? 'false' : 'fail'
+        const tier = scanTier(roll, node.checkDC, misleads)
         setCheckResults((m) => new Map(m).set(path, tier))
         const locked = !!node.locked && !unlocked.has(path)
         push([
@@ -427,6 +433,7 @@ export default function Terminal({
         openSelfDestruct,
         tripTracer,
         flagRescan,
+        evadeTracer,
         checkResults,
         crackAttempts,
         gmMode,
@@ -440,7 +447,7 @@ export default function Terminal({
       if (out.length) push(out)
       push([{ text: '', instant: true }])
     },
-    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, resetProgress, openPasswordPrompt, openCrackPrompt, openCheckPrompt, openSelfDestruct, tripTracer, flagRescan, checkResults, crackAttempts, gmMode, onToggleGm, onSwitchScenario, onLoadScenarioUrl, onOpenScenarioPaste, onShareScenario]
+    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, resetProgress, openPasswordPrompt, openCrackPrompt, openCheckPrompt, openSelfDestruct, tripTracer, flagRescan, evadeTracer, checkResults, crackAttempts, gmMode, onToggleGm, onSwitchScenario, onLoadScenarioUrl, onOpenScenarioPaste, onShareScenario]
   )
 
   const inputReady = animIdx >= history.length
@@ -522,7 +529,10 @@ export default function Terminal({
         />
       )}
       {tracerEndsAt != null && theme.tracer && !caught && (
-        <Tracer endsAt={tracerEndsAt} total={tracerTotal} config={theme.tracer} onComplete={handleTraceComplete} />
+        <>
+          <div className="tracer-vignette" aria-hidden="true" />
+          <Tracer endsAt={tracerEndsAt} total={tracerTotal} config={theme.tracer} onComplete={handleTraceComplete} />
+        </>
       )}
       {caught && <TraceCaught config={caught} onReboot={handleCaughtReboot} />}
       {iceAlert && <IceAlert message={iceAlert} onClose={() => setIceAlert(null)} />}

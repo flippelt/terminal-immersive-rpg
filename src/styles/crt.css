@@ -585,6 +585,20 @@
   width: 100% !important;
 }
 
+/* Ambient dread while the tracer runs: a soft red edge-pulse. */
+.tracer-vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 18;
+  pointer-events: none;
+  box-shadow: inset 0 0 120px 10px color-mix(in srgb, var(--error, #ff3b3b) 38%, transparent);
+  animation: tracer-vignette-pulse 1.6s ease-in-out infinite;
+}
+@keyframes tracer-vignette-pulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.9; }
+}
+
 /* === Trace caught climax (FOUND YOU) === */
 .caught {
   position: fixed;
@@ -777,7 +791,8 @@
   .caught__popup,
   .caught__smiley,
   .caught__off,
-  .ice-alert__title {
+  .ice-alert__title,
+  .tracer-vignette {
     animation: none;
   }
   .tracer__bar span {

@@ -402,6 +402,11 @@ const COMMANDS = {
       if (n.password) parts.push(`pwd:${n.password}`)
       if (n.crackDC != null) parts.push(`DC:${n.crackDC}`)
       if (n.crackable === false) parts.push('nocrack')
+      if (n.checkDC != null) parts.push(`checkDC:${n.checkDC}`)
+      if (n.tracer && ctx.theme.tracer) {
+        const w = n.tracerSeconds ?? ctx.theme.tracer.seconds ?? 30
+        parts.push(`tracer:${w}s`)
+      }
       if (n.reveals) parts.push(`reveals:${n.reveals}`)
       out.push({ text: `  ${p}  [${parts.join(' ')}]`, type: 'muted' })
     }
@@ -507,6 +512,7 @@ const COMMANDS = {
       ]
     }
     // Inline path (script/power-user): key already provided.
+    if (key === node.password && node.tracer) ctx.evadeTracer?.(node)
     return buildDecryptLines(ctx.theme, path, node, key, ctx.unlock, ctx.fs)
   },
 

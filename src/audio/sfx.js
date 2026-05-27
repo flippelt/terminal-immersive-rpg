@@ -241,3 +241,76 @@ export function playWhoosh(profile = {}) {
     osc.stop(now + dur + 0.05)
   }
 }
+
+// Harsh stutter for the "caught" hit — a gated noise burst over a detuned
+// low square. Deliberately ugly.
+export function playGlitch() {
+  const c = ensure()
+  if (!c || _muted) return
+  unsuspend(c)
+  const now = c.currentTime
+  const dur = 0.5
+
+  const bufferSize = Math.max(1, Math.floor(c.sampleRate * dur))
+  const buffer = c.createBuffer(1, bufferSize, c.sampleRate)
+  const data = buffer.getChannelData(0)
+  for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1
+  const noise = c.createBufferSource()
+  noise.buffer = buffer
+  const hp = c.createBiquadFilter()
+  hp.type = 'highpass'
+  hp.frequency.value = 700
+  const ng = c.createGain()
+  // gate the noise into stutters
+  ng.gain.setValueAtTime(0.0001, now)
+  for (let t = 0; t < dur; t += 0.06) {
+    ng.gain.setValueAtTime(0.22, now + t)
+    ng.gain.setValueAtTime(0.0001, now + t + 0.03)
+  }
+  noise.connect(hp).connect(ng).connect(_master)
+  noise.start(now)
+  noise.stop(now + dur + 0.05)
+
+  const osc = c.createOscillator()
+  osc.type = 'square'
+  osc.frequency.setValueAtTime(80, now)
+  osc.frequency.linearRampToValueAtTime(55, now + dur)
+  const og = c.createGain()
+  og.gain.setValueAtTime(0.14, now)
+  og.gain.exponentialRampToValueAtTime(0.0005, now + dur)
+  osc.connect(og).connect(_master)
+  osc.start(now)
+  osc.stop(now + dur + 0.05)
+}
+
+// CRT power-off whine: a quick descending tone with a final click.
+export function playPowerOff() {
+  const c = ensure()
+  if (!c || _muted) return
+  unsuspend(c)
+  const now = c.currentTime
+  const dur = 0.5
+
+  const osc = c.createOscillator()
+  osc.type = 'sawtooth'
+  osc.frequency.setValueAtTime(1200, now)
+  osc.frequency.exponentialRampToValueAtTime(40, now + dur)
+  const og = c.createGain()
+  og.gain.setValueAtTime(0.12, now)
+  og.gain.exponentialRampToValueAtTime(0.0005, now + dur)
+  osc.connect(og).connect(_master)
+  osc.start(now)
+  osc.stop(now + dur + 0.05)
+
+  // final click as it collapses to a dot
+  const click = c.createOscillator()
+  click.type = 'square'
+  click.frequency.value = 2000
+  const cg = c.createGain()
+  cg.gain.setValueAtTime(0.0001, now + dur)
+  cg.gain.linearRampToValueAtTime(0.18, now + dur + 0.01)
+  cg.gain.exponentialRampToValueAtTime(0.0005, now + dur + 0.08)
+  click.connect(cg).connect(_master)
+  click.start(now + dur)
+  click.stop(now + dur + 0.1)
+}

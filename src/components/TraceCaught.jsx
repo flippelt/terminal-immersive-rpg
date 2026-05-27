@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { playGlitch, playPowerOff } from '../audio/sfx.js'
 
 // A drawn, deliberately unsettling grin — used when the GM doesn't override
 // `smiley` with text. Inherits color (red) and the throb animation.
@@ -36,6 +37,7 @@ export default function TraceCaught({ config = {}, onReboot }) {
   const finalText = config.finalText ?? 'FOUND YOU'
   const typeSpeed = config.typeSpeed ?? 220
   const holdMs = (config.hold ?? 5) * 1000
+  const sound = config.sound !== false
 
   const [popups, setPopups] = useState([])
   const [phase, setPhase] = useState('popups') // 'popups' -> 'final'
@@ -51,8 +53,9 @@ export default function TraceCaught({ config = {}, onReboot }) {
     }
   }
 
-  // Phase 1 — scatter popups in quick succession.
+  // Phase 1 — scatter popups in quick succession (with a glitch hit).
   useEffect(() => {
+    if (sound) playGlitch()
     let i = 0
     const id = setInterval(() => {
       const text = popupMsgs[i % popupMsgs.length]
@@ -99,7 +102,10 @@ export default function TraceCaught({ config = {}, onReboot }) {
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
     const t = setTimeout(() => {
       if (reduce) reboot()
-      else setOff(true)
+      else {
+        if (sound) playPowerOff()
+        setOff(true)
+      }
     }, holdMs)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
