@@ -1,0 +1,12 @@
+# Netlify deploy config. Connect the repo on Netlify and it just works —
+# no UI settings needed.
+#
+# The default `npm run build` hardcodes Vite's base to the GitHub Pages
+# subpath (/Immersive-Terminal-for-RPGs/). Netlify serves at the domain
+# root, so we override the base to "/".
+[build]
+  command = "npm run build -- --base=/"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"

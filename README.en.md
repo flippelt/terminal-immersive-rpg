@@ -60,6 +60,11 @@ set per mode (`/` in dev, `/Immersive-Terminal-for-RPGs/` for the build,
 `/Immersive-Terminal-for-RPGs/demo/` for the demo). The themes shown in the demo
 are listed in `DEMO_IDS` in [src/themes/index.js](src/themes/index.js).
 
+**Netlify** (alternative, served at the domain root): preconfigured in
+[`netlify.toml`](netlify.toml) — connect the repo and deploy, no settings
+needed. It overrides the `base` to `/` (the default build targets the Pages
+subpath).
+
 ---
 
 ## Using it at the table

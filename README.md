@@ -59,6 +59,10 @@ publica o site. O `base` do Vite é ajustado por modo (`/` em dev,
 A lista de temas que aparecem no demo fica em `DEMO_IDS` em
 [src/themes/index.js](src/themes/index.js).
 
+**Netlify** (alternativa, na raiz do domínio): já configurado em
+[`netlify.toml`](netlify.toml) — conecte o repo e dê deploy, sem ajustar nada.
+Ele sobrescreve o `base` pra `/` (o build padrão mira a subpasta do Pages).
+
 ---
 
 ## Usando na mesa
