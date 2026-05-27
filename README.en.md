@@ -300,6 +300,13 @@ Self-hosted in [public/fonts/](public/fonts/) — no external calls.
 
 ---
 
+## Contributing
+
+Want to add a new theme? See the [contribution guide](CONTRIBUTING.en.md).
+Every PR runs through CI and needs maintainer approval before merging.
+
+---
+
 ## License
 
 Code under [MIT](LICENSE) © 2026 Felipe Lippelt.

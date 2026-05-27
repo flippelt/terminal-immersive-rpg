@@ -293,6 +293,13 @@ Self-hosted em [public/fonts/](public/fonts/) — sem chamadas externas.
 
 ---
 
+## Contribuindo
+
+Quer adicionar um tema novo? Veja o [guia de contribuição](CONTRIBUTING.md).
+Todo PR passa pelo CI e precisa de aprovação da manutenção antes do merge.
+
+---
+
 ## Licença
 
 Código sob [MIT](LICENSE) © 2026 Felipe Lippelt.
