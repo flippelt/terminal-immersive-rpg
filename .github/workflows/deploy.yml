@@ -1,5 +1,7 @@
-name: Deploy to GitHub Pages
+name: Deploy demo to GitHub Pages
 
+# Pages hosts ONLY the curated demo (served at /demo/); the bare repo URL
+# redirects there. The full site lives elsewhere (Netlify).
 on:
   push:
     branches: [main]
@@ -27,22 +29,28 @@ jobs:
 
       - run: npm ci
 
-      - name: Build main
-        run: npm run build
-
       - name: Build demo (curated subset)
         run: npm run build:demo
 
-      - name: Merge demo into dist/demo
+      - name: Assemble Pages — demo only, with a root redirect
         run: |
-          mkdir -p dist/demo
-          cp -r dist-demo/. dist/demo/
+          mkdir -p site/demo
+          cp -r dist-demo/. site/demo/
+          printf '%s\n' \
+            '<!doctype html>' \
+            '<meta charset="utf-8">' \
+            '<title>Immersive Terminal for RPGs — demo</title>' \
+            '<meta http-equiv="refresh" content="0; url=./demo/">' \
+            '<link rel="canonical" href="./demo/">' \
+            '<body style="background:#000;color:#7CFC00;font-family:monospace">' \
+            '<a style="color:#7CFC00" href="./demo/">→ open the demo</a>' \
+            > site/index.html
 
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: ./dist
+          path: ./site
 
   deploy:
     needs: build
