@@ -271,7 +271,7 @@ src/
     Terminal.jsx           histórico, fila de typewriter, ctx dos comandos
     Prompt.jsx             input com cursor inline
     OutputLine.jsx         linha (typewriter / banner / progress)
-    ProgressLine.jsx       barra animada (crack/decrypt)
+    ProgressModal.jsx      popup com a barra animada (crack/decrypt)
     PasswordModal.jsx      diálogo de senha do decrypt
     ThemeSwitcher.jsx · AudioToggle.jsx
   themes/

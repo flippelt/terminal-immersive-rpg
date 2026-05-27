@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import OutputLine from './OutputLine.jsx'
 import Prompt from './Prompt.jsx'
 import InputModal from './InputModal.jsx'
+import ProgressModal from './ProgressModal.jsx'
 import { runCommand, buildDecryptLines, buildCrackLines } from '../engine/commands.js'
 import { complete } from '../engine/complete.js'
 import { playBeep, playWhoosh } from '../audio/sfx.js'
@@ -272,6 +273,8 @@ export default function Terminal({
 
   const inputReady = animIdx >= history.length
   const speed = theme.crt?.typeSpeed ?? 12
+  const activeLine = animIdx < history.length ? history[animIdx] : null
+  const progressLine = activeLine?.type === 'progress' ? activeLine : null
 
   const completeInput = useCallback(
     (input) =>
@@ -329,6 +332,14 @@ export default function Terminal({
           inputType={modal.kind === 'crack' ? 'number' : 'text'}
           onSubmit={handleModalSubmit}
           onCancel={handleModalCancel}
+        />
+      )}
+      {progressLine && (
+        <ProgressModal
+          key={progressLine.id}
+          label={progressLine.label}
+          duration={progressLine.duration}
+          onDone={advance}
         />
       )}
     </>

@@ -396,6 +396,18 @@
   color: var(--muted, #1a661a);
 }
 
+.modal--progress {
+  min-width: 420px;
+}
+
+.modal__bar {
+  margin: 0;
+  white-space: pre;
+  letter-spacing: 0;
+  color: var(--accent, #88ff88);
+  font-variant-numeric: tabular-nums;
+}
+
 @keyframes overlay-in {
   from { opacity: 0; }
   to { opacity: 1; }

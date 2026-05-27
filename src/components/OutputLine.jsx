@@ -1,5 +1,4 @@
 import { useTypewriter } from '../hooks/useTypewriter.js'
-import ProgressLine from './ProgressLine.jsx'
 import CountdownLine from './CountdownLine.jsx'
 
 const CLASS_BY_TYPE = {
@@ -25,9 +24,9 @@ function TextLine({ line, animate, speed, onDone }) {
 }
 
 export default function OutputLine({ line, animate, speed, onDone }) {
-  if (line.type === 'progress') {
-    return <ProgressLine line={line} animate={animate} onDone={onDone} />
-  }
+  // 'progress' lines are rendered as a centered popup by Terminal, not
+  // inline — so they produce no inline output here.
+  if (line.type === 'progress') return null
   if (line.type === 'countdown') {
     return <CountdownLine line={line} animate={animate} onDone={onDone} />
   }

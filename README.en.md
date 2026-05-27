@@ -276,7 +276,7 @@ src/
     Terminal.jsx           history, typewriter queue, command ctx
     Prompt.jsx             input with inline cursor
     OutputLine.jsx         line (typewriter / banner / progress / countdown)
-    ProgressLine.jsx       animated bar (crack/decrypt)
+    ProgressModal.jsx      popup with the animated bar (crack/decrypt)
     CountdownLine.jsx      self-destruct / event countdown
     InputModal.jsx         password / roll dialog
     Screensaver.jsx        idle matrix-rain
