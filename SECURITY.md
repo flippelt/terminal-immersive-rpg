@@ -3,7 +3,7 @@
 ## Reportar vulnerabilidade
 
 Use o canal privado do GitHub:
-[**abrir um security advisory**](https://github.com/flippelt/terminal-immersive-rpg/security/advisories/new).
+[**abrir um security advisory**](https://github.com/flippelt/Immersive-Terminal-for-RPGs/security/advisories/new).
 
 Não abra *issue pública* para problemas de segurança — vulnerabilidades são
 tratadas em advisory privado até haver patch.

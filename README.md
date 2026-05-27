@@ -1,6 +1,6 @@
 # Terminal Imersivo para RPG
 
-### → [**LIVE DEMO**](https://flippelt.github.io/terminal-immersive-rpg/demo/) ←
+### → [**LIVE DEMO**](https://flippelt.github.io/Immersive-Terminal-for-RPGs/demo/) ←
 
 Um site que simula um terminal de console retrô (estilo *cool-retro-term*) para
 usar como prop em mesas de RPG. Troque de "sistema" e o visual, os textos e o
@@ -53,7 +53,7 @@ npm test             # Vitest (engine: parser, filesystem, autocomplete, locks)
 
 A cada push em `main`, [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)
 publica o site. O `base` do Vite é ajustado por modo (`/` em dev,
-`/terminal-immersive-rpg/` no build, `/terminal-immersive-rpg/demo/` no demo).
+`/Immersive-Terminal-for-RPGs/` no build, `/Immersive-Terminal-for-RPGs/demo/` no demo).
 A lista de temas que aparecem no demo fica em `DEMO_IDS` em
 [src/themes/index.js](src/themes/index.js).
 
