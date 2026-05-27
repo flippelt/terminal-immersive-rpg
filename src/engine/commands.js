@@ -192,9 +192,10 @@ const COMMANDS = {
       const prev = ctx.checkResults?.get(path)
       if (prev) {
         // Already scanned once. A repeat scan trips a suspicious-activity
-        // alert if configured (warning only — does not start the trace).
+        // alert if configured (warning only — never starts the trace), and
+        // burns one of the file's startAfter "grace" attempts.
         const alert = node.checkAlert ?? ctx.theme.tracer?.checkAlert
-        if (alert) ctx.raiseAlert?.(alert)
+        if (alert) ctx.flagRescan?.(path, alert)
         return [
           { text: `${path} — re-scan; using cached result.`, type: 'muted' },
           ...buildCheckLines(ctx.theme, path, node, { tier: prev, locked })

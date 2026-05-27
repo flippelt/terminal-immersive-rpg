@@ -22,10 +22,12 @@ const nextId = () => ++LINE_ID
 
 // Effective tracer settings: a watched file may override the theme/scenario
 // defaults via flat front-matter keys, so difficulty lives on the file.
-const effTracer = (tr, node) => ({
+// `graceLost` is subtracted from startAfter — each repeated scan that trips
+// the ICE alert burns one of the player's free attempts (floored at 0).
+const effTracer = (tr, node, graceLost = 0) => ({
   seconds: node?.tracerSeconds ?? tr?.seconds ?? 30,
   penalty: node?.tracerPenalty ?? tr?.penalty ?? 7,
-  startAfter: node?.tracerStartAfter ?? tr?.startAfter ?? 0,
+  startAfter: Math.max(0, (node?.tracerStartAfter ?? tr?.startAfter ?? 0) - graceLost),
   nocrackSeconds: node?.tracerNocrackSeconds ?? tr?.nocrackSeconds ?? 5
 })
 
@@ -85,6 +87,8 @@ export default function Terminal({
   const [caught, setCaught] = useState(null)
   const [checkResults, setCheckResults] = useState(() => new Map())
   const [iceAlert, setIceAlert] = useState(null)
+  // path -> number of repeated scans; each burns one startAfter "grace".
+  const scanReductionsRef = useRef(new Map())
   const scrollRef = useRef(null)
 
   // Keep a live ref to history so `advance` always reads the latest array
@@ -106,6 +110,7 @@ export default function Terminal({
     setCaught(null)
     setCheckResults(new Map())
     setIceAlert(null)
+    scanReductionsRef.current = new Map()
     const needsLogin = !!theme.login
     setAuthed(!needsLogin)
     setLoginTries(0)
@@ -243,10 +248,13 @@ export default function Terminal({
     setModal({ kind: 'check', path, node })
   }, [])
 
-  // Suspicious-activity warning (e.g. a repeated scan). Warns only — never
-  // arms the tracer.
-  const raiseAlert = useCallback((message) => {
+  // A repeated scan: pop the ICE warning (never arms the tracer) AND burn
+  // one of the file's startAfter "grace" attempts (so re-probing a watched
+  // file makes the eventual trace arm sooner).
+  const flagRescan = useCallback((path, message) => {
     setIceAlert(message || 'SUSPICIOUS ACTIVITY DETECTED')
+    const m = scanReductionsRef.current
+    m.set(path, (m.get(path) ?? 0) + 1)
   }, [])
 
   // Tracer hit zero. If the theme configures a `caught` climax (Cyberpunk),
@@ -273,7 +281,7 @@ export default function Terminal({
       // delays arming until that many failed attempts (handled below).
       const tr = themeRef.current.tracer
       if (tr && node.tracer) {
-        const eff = effTracer(tr, node)
+        const eff = effTracer(tr, node, scanReductionsRef.current.get(path) ?? 0)
         if (eff.startAfter <= 0) {
           setTracerEndsAt((prev) => {
             if (prev != null) return prev
@@ -360,7 +368,7 @@ export default function Terminal({
       //  • if active, each failed attempt drags it earlier by `penalty`.
       const tr = themeRef.current.tracer
       if (tr && node.tracer) {
-        const eff = effTracer(tr, node)
+        const eff = effTracer(tr, node, scanReductionsRef.current.get(path) ?? 0)
         setTracerEndsAt((prev) => {
           if (prev == null) {
             if (eff.startAfter >= 1 && used >= eff.startAfter) {
@@ -418,7 +426,7 @@ export default function Terminal({
         openCheckPrompt,
         openSelfDestruct,
         tripTracer,
-        raiseAlert,
+        flagRescan,
         checkResults,
         crackAttempts,
         gmMode,
@@ -432,7 +440,7 @@ export default function Terminal({
       if (out.length) push(out)
       push([{ text: '', instant: true }])
     },
-    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, resetProgress, openPasswordPrompt, openCrackPrompt, openCheckPrompt, openSelfDestruct, tripTracer, raiseAlert, checkResults, crackAttempts, gmMode, onToggleGm, onSwitchScenario, onLoadScenarioUrl, onOpenScenarioPaste, onShareScenario]
+    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, resetProgress, openPasswordPrompt, openCrackPrompt, openCheckPrompt, openSelfDestruct, tripTracer, flagRescan, checkResults, crackAttempts, gmMode, onToggleGm, onSwitchScenario, onLoadScenarioUrl, onOpenScenarioPaste, onShareScenario]
   )
 
   const inputReady = animIdx >= history.length

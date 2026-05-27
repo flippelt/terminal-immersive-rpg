@@ -309,15 +309,15 @@ describe('check with difficulty (checkDC)', () => {
     expect(openCheckPrompt).toHaveBeenCalledWith('/v.dat', dcFs['/v.dat'])
     expect(out.some((l) => l.text.includes('MONITORED'))).toBe(false)
   })
-  it('raises an alert on a repeat scan and does not re-roll', () => {
+  it('flags a repeat scan (alert + grace loss) and does not re-roll', () => {
     const openCheckPrompt = vi.fn()
-    const raiseAlert = vi.fn()
+    const flagRescan = vi.fn()
     runCommand(
       'check v.dat',
-      makeCtx({ fs: dcFs, openCheckPrompt, raiseAlert, checkResults: new Map([['/v.dat', 'precise']]), theme })
+      makeCtx({ fs: dcFs, openCheckPrompt, flagRescan, checkResults: new Map([['/v.dat', 'precise']]), theme })
     )
     expect(openCheckPrompt).not.toHaveBeenCalled()
-    expect(raiseAlert).toHaveBeenCalledWith('SUS')
+    expect(flagRescan).toHaveBeenCalledWith('/v.dat', 'SUS')
   })
   it('GM mode reveals the truth without a roll', () => {
     const openCheckPrompt = vi.fn()
