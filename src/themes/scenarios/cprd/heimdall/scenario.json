@@ -5,7 +5,7 @@
     "seconds": 30,
     "penalty": 7,
     "startAfter": 1,
-    "nocrackSeconds": 5,
+    "nocrackSeconds": 3,
     "label": "ICE TRACE",
     "active": "ICE TRACE ACTIVE",
     "complete": "TRACE COMPLETE — LOCATION FIXED",
@@ -16,7 +16,7 @@
       "popupCount": 16,
       "finalText": "FOUND YOU",
       "_smiley": ":)",
-      "hold": 7
+      "hold": 5
     }
   },
   "aliases": { "scan": "check", "probe": "check" },

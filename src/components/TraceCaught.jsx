@@ -35,7 +35,7 @@ export default function TraceCaught({ config = {}, onReboot }) {
   const popupInterval = config.popupInterval ?? 220
   const finalText = config.finalText ?? 'FOUND YOU'
   const typeSpeed = config.typeSpeed ?? 220
-  const holdMs = (config.hold ?? 7) * 1000
+  const holdMs = (config.hold ?? 5) * 1000
 
   const [popups, setPopups] = useState([])
   const [phase, setPhase] = useState('popups') // 'popups' -> 'final'
@@ -105,10 +105,12 @@ export default function TraceCaught({ config = {}, onReboot }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showSmiley])
 
-  // After the power-off animation, reboot.
+  // Power-off: collapse (~0.5s), then hold a fully black screen 0.7s, then
+  // reboot. Content is hidden the instant it powers off, so nothing of the
+  // FOUND YOU screen shows through before the reboot.
   useEffect(() => {
     if (!off) return
-    const t = setTimeout(reboot, 700)
+    const t = setTimeout(reboot, 1200)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [off])
@@ -129,7 +131,7 @@ export default function TraceCaught({ config = {}, onReboot }) {
             {p.text}
           </div>
         ))}
-      {phase === 'final' && (
+      {phase === 'final' && !off && (
         <div className="caught__final">
           <span className="caught__text">{typed}</span>
           {showSmiley &&

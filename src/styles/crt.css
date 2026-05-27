@@ -657,7 +657,7 @@
   z-index: 3;
   background: #e9fff6;
   transform-origin: center;
-  animation: crt-power-off 0.66s cubic-bezier(0.5, 0, 0.7, 1) forwards;
+  animation: crt-power-off 0.5s cubic-bezier(0.5, 0, 0.7, 1) forwards;
 }
 @keyframes crt-power-off {
   0% { transform: scale(1, 1); opacity: 1; }
