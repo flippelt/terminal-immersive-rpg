@@ -1,0 +1,19 @@
+{
+  "name": "Immersive Terminal for RPGs",
+  "short_name": "RPG Terminal",
+  "description": "A retro CRT terminal prop for tabletop RPGs — swappable systems and GM-authored scenarios.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#000000",
+  "theme_color": "#00ff66",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
