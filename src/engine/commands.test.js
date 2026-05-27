@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { runCommand, buildDecryptLines, buildCheckLines } from './commands.js'
+import { runCommand, buildDecryptLines, buildCheckLines, renderFileContent } from './commands.js'
 
 const fs = {
   '/': { type: 'dir', children: ['note.txt', 'secret.dat', 'next.dat'] },
@@ -33,9 +33,11 @@ function makeCtx(over = {}) {
 const texts = (lines) => lines.map((l) => l.text)
 
 describe('cat', () => {
-  it('prints file content split by line', () => {
+  it('hands an open file to the viewer popup (fileview directive)', () => {
     const out = runCommand('cat note.txt', makeCtx())
-    expect(texts(out)).toEqual(['line one', 'line two'])
+    expect(out).toHaveLength(1)
+    expect(out[0]).toMatchObject({ type: 'fileview', path: '/note.txt' })
+    expect(out[0].node).toBe(fs['/note.txt'])
   })
   it('denies a locked file', () => {
     const out = runCommand('cat secret.dat', makeCtx())
@@ -47,16 +49,19 @@ describe('cat', () => {
     expect(out[0].text).toContain('GM preview')
     expect(out.some((l) => l.text?.includes('pwd:SWORD'))).toBe(true)
   })
-  it('reads a locked file once it is unlocked', () => {
+  it('hands a now-unlocked locked file to the viewer', () => {
     const out = runCommand('cat secret.dat', makeCtx({ unlocked: new Set(['/secret.dat']) }))
-    expect(out[0].type).not.toBe('err')
+    expect(out[0]).toMatchObject({ type: 'fileview', path: '/secret.dat' })
   })
-  it('emits an image line for a file with an image front-matter', () => {
-    const imgFs = {
-      '/': { type: 'dir', children: ['photo.md'] },
-      '/photo.md': { type: 'file', content: '# caption', image: 'data:image/png;base64,AAAA', imageAlt: 'a photo' }
-    }
-    const out = runCommand('cat photo.md', makeCtx({ fs: imgFs }))
+})
+
+describe('renderFileContent', () => {
+  it('splits plain content by line', () => {
+    expect(texts(renderFileContent('/note.txt', fs['/note.txt']))).toEqual(['line one', 'line two'])
+  })
+  it('emits an image line then the markdown for an image file', () => {
+    const node = { type: 'file', content: '# caption', image: 'data:image/png;base64,AAAA', imageAlt: 'a photo' }
+    const out = renderFileContent('/photo.md', node)
     expect(out[0]).toMatchObject({ type: 'image', src: 'data:image/png;base64,AAAA', alt: 'a photo' })
     expect(out.some((l) => l.text?.includes('CAPTION'))).toBe(true)
   })

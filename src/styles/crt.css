@@ -469,6 +469,111 @@
   overflow: auto;
 }
 
+/* === File viewer (cinematic `cat`) === */
+.modal--file {
+  width: min(720px, 92vw);
+  display: flex;
+  flex-direction: column;
+  max-height: 80%;
+}
+.file__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.file__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.file__close {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid var(--muted, #1a661a);
+  color: var(--fg);
+  font: inherit;
+  line-height: 1;
+  padding: 2px 9px;
+  cursor: pointer;
+  text-shadow: inherit;
+}
+.file__close:hover,
+.file__close:focus-visible {
+  border-color: var(--fg);
+  background: color-mix(in srgb, var(--fg) 14%, transparent);
+  outline: none;
+}
+.file__body {
+  overflow-y: auto;
+  max-height: 60vh;
+  margin-bottom: 14px;
+  padding-right: 8px;
+  line-height: 1.5;
+}
+
+/* === Decrypt success cinematic (ACCESS GRANTED -> key auto-type) === */
+.decrypt-success {
+  flex-direction: column;
+  background: color-mix(in srgb, var(--bg, #000) 86%, transparent);
+}
+.decrypt-success__granted {
+  font-weight: bold;
+  font-size: clamp(1.6rem, 6vw, 3rem);
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  color: var(--accent, #88ff88);
+  text-shadow: 0 0 14px currentColor;
+  animation: granted-blink 0.42s steps(1) 2;
+}
+@keyframes granted-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0.12;
+  }
+}
+.decrypt-success__key {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.decrypt-success__label {
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  font-size: 0.9em;
+  color: var(--muted, #1a661a);
+}
+.decrypt-success__code {
+  font-size: clamp(1.4rem, 5vw, 2.4rem);
+  letter-spacing: 8px;
+  color: var(--fg);
+  text-shadow: 0 0 12px currentColor;
+}
+.decrypt-success__caret {
+  display: inline-block;
+  width: 0.55em;
+  height: 1.05em;
+  margin-left: 4px;
+  vertical-align: -0.12em;
+  background: var(--fg);
+  animation: caret-blink 0.9s steps(1) infinite;
+}
+@keyframes caret-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+
 .load-toast {
   position: fixed;
   top: 18px;
@@ -885,7 +990,9 @@
   .caught__off,
   .ice-alert__title,
   .tracer-vignette,
-  .detonation__cell {
+  .detonation__cell,
+  .decrypt-success__granted,
+  .decrypt-success__caret {
     animation: none;
   }
   .detonation__cell {
