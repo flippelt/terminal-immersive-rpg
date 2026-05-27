@@ -35,7 +35,7 @@ const help = (t, extra = []) => [
 // .dat, ...) prints raw, like a data dump. A file with an `image:`
 // front-matter key (a URL or data URI) renders that picture, CRT-filtered,
 // above its text — Esper photos, maps, mugshots.
-function renderFileContent(path, node) {
+export function renderFileContent(path, node) {
   const text = node?.content ?? ''
   const lines = path.endsWith('.md')
     ? renderMarkdown(text)
@@ -230,7 +230,10 @@ const COMMANDS = {
         { text: hint, type: 'muted' }
       ]
     }
-    return renderFileContent(path, node)
+    // Cinematic read: hand off to the file-viewer popup (Terminal intercepts
+    // this directive). The content itself is rendered by the viewer via
+    // renderFileContent, so nothing prints inline.
+    return [{ type: 'fileview', path, node }]
   },
 
   scenario: (ctx) => {
@@ -574,6 +577,17 @@ function buildEventLines(theme, path) {
   const ev = theme.events?.[path]
   if (!Array.isArray(ev)) return []
   return ev.map((l) => (typeof l === 'string' ? { text: l } : l))
+}
+
+// The terminal "tail" that follows a successful unlock once the cinematic
+// (progress bar, or the decrypt reveal sequence) is done: any recovered-key
+// reveal chain plus scenario onUnlock events. Shared so the decrypt minigame
+// win can post the same lines without re-running the progress bar.
+export function buildUnlockExtras(theme, path, node, t = makeT('en')) {
+  return [
+    ...buildRevealLines(theme.filesystem ?? {}, node, t),
+    ...buildEventLines(theme, path)
+  ]
 }
 
 // Render a `check` scan. `tier` scales detail with the scan roll:

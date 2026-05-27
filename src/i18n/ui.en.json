@@ -166,6 +166,10 @@
   "cmd.notfound": "command not found: {name}",
   "cmd.hint": "type `help` for available commands.",
 
+  "viewer.hint": "esc / × to close",
+  "viewer.close": "close",
+  "decrypt.granted": "ACCESS GRANTED",
+  "decrypt.keyrecovered": "KEY RECOVERED",
   "decrypt.solved": ">>> cipher solved — key recovered: {key}",
   "decrypt.failed": "decryption failed — cipher re-scrambled.",
   "decrypt.failed.hint": "try `decrypt` again, or `unlock <file> <key>` if you have the password.",

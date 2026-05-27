@@ -166,6 +166,10 @@
   "cmd.notfound": "comando não encontrado: {name}",
   "cmd.hint": "digite `help` para ver os comandos disponíveis.",
 
+  "viewer.hint": "esc / × para fechar",
+  "viewer.close": "fechar",
+  "decrypt.granted": "ACESSO LIBERADO",
+  "decrypt.keyrecovered": "CHAVE RECUPERADA",
   "decrypt.solved": ">>> cifra resolvida — chave recuperada: {key}",
   "decrypt.failed": "descriptografia falhou — cifra reembaralhada.",
   "decrypt.failed.hint": "tente `decrypt` de novo, ou `unlock <file> <key>` se tiver a senha.",

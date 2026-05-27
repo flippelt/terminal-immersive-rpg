@@ -8,13 +8,15 @@ import Tracer from './Tracer.jsx'
 import TraceCaught from './TraceCaught.jsx'
 import IceAlert from './IceAlert.jsx'
 import DecryptGame from './DecryptGame.jsx'
+import DecryptSuccess from './DecryptSuccess.jsx'
+import FileViewer from './FileViewer.jsx'
 import Detonation from './Detonation.jsx'
 
 const toLines = (val, type) =>
   (Array.isArray(val) ? val : [val])
     .filter((v) => v != null)
     .map((v) => (typeof v === 'string' ? { text: v, type } : v))
-import { runCommand, buildDecryptLines, buildCrackLines, buildCheckLines } from '../engine/commands.js'
+import { runCommand, buildDecryptLines, buildCrackLines, buildCheckLines, buildUnlockExtras } from '../engine/commands.js'
 import { complete } from '../engine/complete.js'
 import { effTracer, scanTier } from '../engine/tracer.js'
 import { pickWord } from '../engine/wordle.js'
@@ -83,6 +85,8 @@ export default function Terminal({
   const [checkResults, setCheckResults] = useState(() => new Map())
   const [iceAlert, setIceAlert] = useState(null)
   const [decryptGame, setDecryptGame] = useState(null) // { path, node }
+  const [decryptSuccess, setDecryptSuccess] = useState(null) // { path, node, key }
+  const [fileViewer, setFileViewer] = useState(null) // { path, node }
   const [detonating, setDetonating] = useState(null) // selfDestruct config
   // path -> number of repeated scans; each burns one startAfter "grace".
   const scanReductionsRef = useRef(new Map())
@@ -285,18 +289,39 @@ export default function Terminal({
 
   // Won the cipher minigame: recover the key, evade the tracer, and run the
   // normal unlock sequence (progress + reveal chain + events).
+  const openFileViewer = useCallback((path, node) => setFileViewer({ path, node }), [])
+
+  // Won the cipher minigame: recover the key + evade the tracer, unlock the
+  // file now (so it's readable the instant the viewer opens), and run the
+  // ACCESS GRANTED → key auto-type cinematic. The terminal tail + file popup
+  // come when that cinematic completes (handleDecryptReveal).
   const handleDecryptWin = useCallback(() => {
     if (!decryptGame) return
     const { path, node } = decryptGame
     setDecryptGame(null)
     const tr = themeRef.current.tracer
     if (tr && node.tracer && tracerEndsAt != null) setTracerEndsAt(null)
-    push([
-      { text: tRef.current('decrypt.solved', { key: node.password }), type: 'ok' },
-      ...buildDecryptLines(themeRef.current, path, node, node.password, unlock, themeRef.current.filesystem, tRef.current),
-      { text: '', instant: true }
-    ])
-  }, [decryptGame, push, unlock, tracerEndsAt])
+    unlock(path)
+    setDecryptSuccess({ path, node, key: node.password })
+  }, [decryptGame, unlock, tracerEndsAt])
+
+  // Cinematic finished: post the terminal record + any reveal-chain / event
+  // tail, then open the freshly-decrypted file in the viewer popup.
+  const handleDecryptReveal = useCallback(() => {
+    setDecryptSuccess((ds) => {
+      if (ds) {
+        const { path, node } = ds
+        push([
+          { text: tRef.current('decrypt.solved', { key: node.password }), type: 'ok' },
+          { text: tRef.current('decrypt.done', { path }), type: 'ok' },
+          ...buildUnlockExtras(themeRef.current, path, node, tRef.current),
+          { text: '', instant: true }
+        ])
+        openFileViewer(path, node)
+      }
+      return null
+    })
+  }, [push, openFileViewer])
 
   const handleDecryptLose = useCallback(() => {
     setDecryptGame(null)
@@ -519,12 +544,18 @@ export default function Terminal({
         switchScenario: onSwitchScenario,
         loadScenarioUrl: onLoadScenarioUrl,
         openScenarioPaste: onOpenScenarioPaste,
-        shareScenario: onShareScenario
+        shareScenario: onShareScenario,
+        openFileViewer
       })
-      if (out.length) push(out)
+      // `cat` hands a file off to the viewer popup via a directive rather
+      // than printing inline — intercept it, open the popup, print the rest.
+      const fv = out.find((l) => l.type === 'fileview')
+      if (fv) openFileViewer(fv.path, fv.node)
+      const printable = fv ? out.filter((l) => l.type !== 'fileview') : out
+      if (printable.length) push(printable)
       push([{ text: '', instant: true }])
     },
-    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, resetProgress, openPasswordPrompt, openCrackPrompt, openCheckPrompt, openDecryptGame, openSelfDestruct, tripTracer, flagRescan, evadeTracer, resolveDecryptTarget, lang, checkResults, crackAttempts, gmMode, onToggleGm, onSwitchScenario, onLoadScenarioUrl, onOpenScenarioPaste, onShareScenario]
+    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, resetProgress, openPasswordPrompt, openCrackPrompt, openCheckPrompt, openDecryptGame, openSelfDestruct, tripTracer, flagRescan, evadeTracer, resolveDecryptTarget, lang, checkResults, crackAttempts, gmMode, onToggleGm, onSwitchScenario, onLoadScenarioUrl, onOpenScenarioPaste, onShareScenario, openFileViewer]
   )
 
   const inputReady = animIdx >= history.length
@@ -559,7 +590,7 @@ export default function Terminal({
             />
           )
         })}
-        {inputReady && !modal && !decryptGame && authed && (
+        {inputReady && !modal && !decryptGame && !decryptSuccess && !fileViewer && authed && (
           <Prompt
             sigil={theme.prompt ?? '$'}
             cwd={cwd}
@@ -626,6 +657,21 @@ export default function Terminal({
           onWin={handleDecryptWin}
           onLose={handleDecryptLose}
           onCancel={handleDecryptCancel}
+        />
+      )}
+      {decryptSuccess && (
+        <DecryptSuccess
+          keyText={decryptSuccess.key}
+          t={tRef.current}
+          onComplete={handleDecryptReveal}
+        />
+      )}
+      {fileViewer && (
+        <FileViewer
+          path={fileViewer.path}
+          node={fileViewer.node}
+          t={tRef.current}
+          onClose={() => setFileViewer(null)}
         />
       )}
       {detonating && <Detonation config={detonating} onReboot={handleDetonationReboot} />}
