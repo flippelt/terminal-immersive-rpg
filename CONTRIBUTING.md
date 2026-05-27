@@ -63,8 +63,13 @@ npm run build
 2. Abra um PR contra a `main` deste repositório.
 3. Descreva o tema/cenário e **como testar** (qual tema, quais comandos, senhas
    de arquivos trancados se houver).
-4. O **CI precisa passar** (lint + testes + build) — roda automaticamente no PR.
-5. **Todo PR precisa de aprovação da manutenção ([@flippelt](https://github.com/flippelt))
-   antes do merge.** Mudanças são solicitadas pelo review quando necessário.
 
-Obrigado por contribuir — e boas sessões! 🖖
+A `main` é protegida por um *ruleset*. Para um PR ser mergeado:
+
+- o **CI precisa passar** (lint + testes + build) — roda automaticamente no PR;
+- é preciso **pelo menos uma aprovação de um mantenedor** (code owner) — o
+  review pode solicitar mudanças antes;
+- histórico linear (use *squash*/*rebase*) e conversas resolvidas.
+
+Mantenedores podem ajudar a ajustar o PR no review. Obrigado por contribuir — e
+boas sessões! 🖖

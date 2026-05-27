@@ -64,8 +64,13 @@ npm run build
 2. Open a PR against this repository's `main`.
 3. Describe the theme/scenario and **how to test** it (which theme, which
    commands, passwords for any locked files).
-4. **CI must pass** (lint + tests + build) — it runs automatically on the PR.
-5. **Every PR requires maintainer approval ([@flippelt](https://github.com/flippelt))
-   before merging.** Review may request changes when needed.
 
-Thanks for contributing — and happy sessions! 🖖
+`main` is protected by a *ruleset*. For a PR to merge:
+
+- **CI must pass** (lint + tests + build) — it runs automatically on the PR;
+- it needs **at least one approval from a maintainer** (code owner) — review
+  may request changes first;
+- linear history (use *squash*/*rebase*) and resolved conversations.
+
+Maintainers can help refine the PR during review. Thanks for contributing — and
+happy sessions! 🖖
