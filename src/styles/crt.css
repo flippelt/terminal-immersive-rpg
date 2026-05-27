@@ -724,6 +724,43 @@
   100% { transform: scale(0, 0); opacity: 0; }
 }
 
+/* === Self-destruct detonation (red voxels flooding the screen) === */
+.detonation {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.detonation__grid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(18, 1fr);
+  grid-template-rows: repeat(12, 1fr);
+}
+.detonation__cell {
+  background: var(--error, #ff3b3b);
+  opacity: 0;
+  animation: voxel-fail 0.16s steps(1, end) forwards;
+}
+@keyframes voxel-fail {
+  to { opacity: 1; }
+}
+.detonation__msg {
+  position: relative;
+  z-index: 1;
+  color: #fff;
+  font-family: var(--font), monospace;
+  font-weight: bold;
+  font-size: clamp(1.4rem, 5vw, 3rem);
+  letter-spacing: 2px;
+  text-align: center;
+  text-shadow: 0 0 14px #000, 0 0 6px #000;
+}
+
 /* === ICE alert window (e.g. repeated scan) — warns, doesn't trace === */
 .ice-alert {
   position: fixed;
@@ -836,8 +873,12 @@
   .caught__smiley,
   .caught__off,
   .ice-alert__title,
-  .tracer-vignette {
+  .tracer-vignette,
+  .detonation__cell {
     animation: none;
+  }
+  .detonation__cell {
+    opacity: 1;
   }
   .tracer__bar span {
     transition: none;
