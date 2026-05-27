@@ -400,6 +400,44 @@
   min-width: 420px;
 }
 
+/* === Load custom scenario dialog === */
+.modal--scenario {
+  min-width: min(640px, 92vw);
+}
+
+.modal__textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 180px;
+  line-height: 1.4;
+  white-space: pre;
+  overflow: auto;
+}
+
+.load-toast {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  max-width: min(560px, 90vw);
+  padding: 10px 16px;
+  background: color-mix(in srgb, var(--error, #ff4444) 14%, rgba(0, 0, 0, 0.9));
+  border: 1px solid var(--error, #ff4444);
+  color: var(--error, #ff4444);
+  font-family: var(--font), monospace;
+  font-size: 0.85em;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 0 18px color-mix(in srgb, var(--error, #ff4444) 35%, transparent);
+  animation: modal-in 0.2s ease-out;
+}
+
+.load-toast__x {
+  opacity: 0.7;
+  margin-left: 8px;
+}
+
 /* === Self-destruct popup === */
 .modal-overlay--alarm {
   background: color-mix(in srgb, var(--error, #ff4444) 14%, rgba(0, 0, 0, 0.78));

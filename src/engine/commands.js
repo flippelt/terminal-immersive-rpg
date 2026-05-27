@@ -35,6 +35,7 @@ const help = (extra = []) => [
   { text: '  motd                  reprint banner' },
   { text: '  theme [id]            switch system' },
   { text: '  scenario [list|load]  switch campaign within a system' },
+  { text: '  loadscenario [url]    load a custom scenario (URL or paste JSON)' },
   { text: '  reboot                cold restart' },
   { text: '  reset                 wipe this scenario’s progress' },
   { text: '  crack <file>          brute-force a locked file' },
@@ -100,6 +101,22 @@ const COMMANDS = {
   reset: (ctx) => {
     ctx.resetProgress?.()
     return []
+  },
+
+  loadscenario: (ctx) => {
+    const url = ctx.args[0]
+    if (!url) {
+      if (ctx.openScenarioPaste) {
+        ctx.openScenarioPaste()
+        return [{ text: 'paste a scenario bundle (JSON) into the dialog.', type: 'muted' }]
+      }
+      return [{ text: 'loadscenario: provide a URL or paste JSON', type: 'err' }]
+    }
+    if (!/^https?:\/\//i.test(url)) {
+      return [{ text: 'loadscenario: URL must start with http(s)://', type: 'err' }]
+    }
+    ctx.loadScenarioUrl?.(url)
+    return [{ text: `fetching scenario from ${url} ...`, type: 'muted' }]
   },
 
   ls: (ctx) => {

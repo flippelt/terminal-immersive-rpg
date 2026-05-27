@@ -3,6 +3,7 @@ import Terminal from './components/Terminal.jsx'
 import ThemeSwitcher from './components/ThemeSwitcher.jsx'
 import AudioToggle from './components/AudioToggle.jsx'
 import Screensaver from './components/Screensaver.jsx'
+import ScenarioModal from './components/ScenarioModal.jsx'
 import { setVolume as setAudioVolume, startHum } from './audio/sfx.js'
 
 const IDLE_MS = 45000
@@ -11,7 +12,8 @@ import {
   DEFAULT_THEME,
   THEME_BY_ID,
   IS_DEMO,
-  composeTheme
+  composeTheme,
+  composeCustomScenario
 } from './themes/index.js'
 
 const LS_KEY = 'tirpg.theme'
@@ -48,6 +50,12 @@ export default function App() {
   // GM mode is session-only by design — don't persist (default off each load).
   const [gmMode, setGmMode] = useState(false)
 
+  // A GM-loaded custom scenario (from a URL or pasted JSON). When set it
+  // takes over from the repo theme/scenario selection until cleared.
+  const [customTheme, setCustomTheme] = useState(null)
+  const [pasteOpen, setPasteOpen] = useState(false)
+  const [loadError, setLoadError] = useState(null)
+
   // Themes the GM has disabled for players. Persisted so the table keeps
   // the GM's setup across reloads.
   const [disabledThemes, setDisabledThemes] = useState(() => {
@@ -69,18 +77,64 @@ export default function App() {
   }, [])
 
   const theme = useMemo(
-    () => composeTheme(sel.themeId, sel.scenarioId),
-    [sel]
+    () => customTheme ?? composeTheme(sel.themeId, sel.scenarioId),
+    [customTheme, sel]
   )
 
   const setTheme = useCallback((themeSkin) => {
-    // Switching theme resets to that theme's default scenario.
+    // Switching theme resets to that theme's default scenario and drops
+    // any custom scenario that was loaded.
+    setCustomTheme(null)
     setSel({ themeId: themeSkin.id, scenarioId: null })
   }, [])
 
   const switchScenario = useCallback((scenarioId) => {
+    setCustomTheme(null)
     setSel((s) => ({ ...s, scenarioId }))
   }, [])
+
+  // Custom-scenario loading (URL or pasted JSON). Composing throws on a
+  // malformed bundle; callers surface the message.
+  const applyBundle = useCallback((bundle) => {
+    const composed = composeCustomScenario(bundle)
+    setLoadError(null)
+    setCustomTheme(composed)
+  }, [])
+
+  const loadScenarioUrl = useCallback(
+    async (url) => {
+      try {
+        const res = await fetch(url)
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        applyBundle(await res.json())
+      } catch (e) {
+        setLoadError(`scenario load failed: ${e.message}`)
+      }
+    },
+    [applyBundle]
+  )
+
+  // Returns an error string for the paste dialog to show, or null on success.
+  const loadScenarioText = useCallback(
+    (text) => {
+      try {
+        applyBundle(JSON.parse(text))
+        setPasteOpen(false)
+        return null
+      } catch (e) {
+        return `invalid bundle: ${e.message}`
+      }
+    },
+    [applyBundle]
+  )
+
+  const openScenarioPaste = useCallback(() => setPasteOpen(true), [])
+
+  // ?scenarioUrl=<url> loads a custom scenario on first paint.
+  useEffect(() => {
+    const url = new URLSearchParams(window.location.search).get('scenarioUrl')
+    if (url) loadScenarioUrl(url)
+  }, [loadScenarioUrl])
 
   const toggleGm = useCallback(() => setGmMode((m) => !m), [])
 
@@ -149,6 +203,7 @@ export default function App() {
         <span>{theme.header}</span>
         <span className="chrome__right">
           {gmMode && <span className="chrome__gm">★ GM</span>}
+          {theme.custom && <span className="chrome__demo">CUSTOM</span>}
           {IS_DEMO && <span className="chrome__demo">DEMO</span>}
           UPLINK · {new Date().getFullYear()}
         </span>
@@ -159,6 +214,8 @@ export default function App() {
           themes={THEMES}
           onSwitchTheme={setTheme}
           onSwitchScenario={switchScenario}
+          onLoadScenarioUrl={loadScenarioUrl}
+          onOpenScenarioPaste={openScenarioPaste}
           gmMode={gmMode}
           onToggleGm={toggleGm}
         />
@@ -173,6 +230,17 @@ export default function App() {
         onToggleDisabled={toggleThemeDisabled}
       />
       <AudioToggle />
+      {pasteOpen && (
+        <ScenarioModal
+          onSubmit={loadScenarioText}
+          onCancel={() => setPasteOpen(false)}
+        />
+      )}
+      {loadError && (
+        <div className="load-toast" role="alert" onClick={() => setLoadError(null)}>
+          {loadError} <span className="load-toast__x">✕</span>
+        </div>
+      )}
       {idle && (
         <Screensaver
           onWake={() => setIdle(false)}

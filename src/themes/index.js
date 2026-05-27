@@ -113,16 +113,10 @@ export function scenarioIdsFor(themeId) {
 
 // Merge a theme skin with a scenario's content. Scenario fields override
 // theme defaults; `commands` and `locks` shallow-merge.
-export function composeTheme(themeId, scenarioId) {
-  const theme = THEME_REGISTRY[themeId]
-  if (!theme) return null
-  const available = SCENARIOS[themeId] ?? {}
-  const sid = available[scenarioId] ? scenarioId : theme.defaultScenario
-  const scenario = available[sid] ?? {}
-
+function mergeScenario(theme, scenario) {
   return {
     ...theme,
-    scenarioId: scenario.id ?? sid ?? null,
+    scenarioId: scenario.id ?? null,
     scenarioName: scenario.name ?? null,
     user: scenario.user ?? theme.user,
     header: scenario.header ?? theme.header,
@@ -138,6 +132,60 @@ export function composeTheme(themeId, scenarioId) {
     commands: { ...theme.commands, ...scenario.commands },
     filesystem: scenario.filesystem ?? {}
   }
+}
+
+export function composeTheme(themeId, scenarioId) {
+  const theme = THEME_REGISTRY[themeId]
+  if (!theme) return null
+  const available = SCENARIOS[themeId] ?? {}
+  const sid = available[scenarioId] ? scenarioId : theme.defaultScenario
+  const scenario = available[sid] ?? {}
+  return mergeScenario(theme, { ...scenario, id: scenario.id ?? sid ?? null })
+}
+
+// Skin fields a custom bundle may override for a fully bespoke look.
+const SKIN_KEYS = [
+  'palette', 'font', 'fontSize', 'crt', 'banner', 'screensaver',
+  'sounds', 'unknownHint', 'extraHelp'
+]
+
+// Build a runtime theme from an inline scenario bundle — GM-authored
+// content loaded from a URL or pasted JSON, no repo edit required. The
+// bundle mirrors a scenario.json plus a `files` map (path -> raw text,
+// front-matter and all) and an optional base `theme` id to skin it.
+export function composeCustomScenario(bundle) {
+  if (!bundle || typeof bundle !== 'object' || Array.isArray(bundle)) {
+    throw new Error('scenario bundle must be a JSON object')
+  }
+  const baseId =
+    bundle.theme && THEME_REGISTRY[bundle.theme]
+      ? bundle.theme
+      : THEME_REGISTRY.ibm
+        ? 'ibm'
+        : THEME_LIST[0].id
+  const theme = THEME_REGISTRY[baseId]
+
+  const filesObj = bundle.files ?? {}
+  if (typeof filesObj !== 'object' || Array.isArray(filesObj)) {
+    throw new Error('`files` must be an object of path -> text')
+  }
+  const files = Object.entries(filesObj).map(([path, raw]) => {
+    const p = path.startsWith('/') ? path : '/' + path
+    const { meta, content } = parseFrontMatter(String(raw))
+    return { path: p, content, meta }
+  })
+
+  const scenario = {
+    ...bundle,
+    id: bundle.id ?? 'custom',
+    filesystem: buildFilesystem(files)
+  }
+  const merged = mergeScenario(theme, scenario)
+  for (const k of SKIN_KEYS) {
+    if (bundle[k] != null) merged[k] = bundle[k]
+  }
+  merged.custom = true
+  return merged
 }
 
 // Demo build (vite build --mode demo) shows a curated subset.

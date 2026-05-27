@@ -52,6 +52,8 @@ export default function Terminal({
   themes,
   onSwitchTheme,
   onSwitchScenario,
+  onLoadScenarioUrl,
+  onOpenScenarioPaste,
   gmMode,
   onToggleGm
 }) {
@@ -316,12 +318,14 @@ export default function Terminal({
         gmMode,
         toggleGm: onToggleGm,
         scenarioIds: scenarioIdsFor(theme.id),
-        switchScenario: onSwitchScenario
+        switchScenario: onSwitchScenario,
+        loadScenarioUrl: onLoadScenarioUrl,
+        openScenarioPaste: onOpenScenarioPaste
       })
       if (out.length) push(out)
       push([{ text: '', instant: true }])
     },
-    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, resetProgress, openPasswordPrompt, openCrackPrompt, openSelfDestruct, crackAttempts, gmMode, onToggleGm, onSwitchScenario]
+    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, resetProgress, openPasswordPrompt, openCrackPrompt, openSelfDestruct, crackAttempts, gmMode, onToggleGm, onSwitchScenario, onLoadScenarioUrl, onOpenScenarioPaste]
   )
 
   const inputReady = animIdx >= history.length

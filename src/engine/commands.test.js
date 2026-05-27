@@ -209,6 +209,24 @@ describe('query / dialog', () => {
   })
 })
 
+describe('loadscenario', () => {
+  it('rejects a non-http operand', () => {
+    const out = runCommand('loadscenario ./local.json', makeCtx())
+    expect(out[0].type).toBe('err')
+  })
+  it('calls loadScenarioUrl for an http(s) url', () => {
+    const loadScenarioUrl = vi.fn()
+    const out = runCommand('loadscenario https://example.com/s.json', makeCtx({ loadScenarioUrl }))
+    expect(loadScenarioUrl).toHaveBeenCalledWith('https://example.com/s.json')
+    expect(out[0].text).toContain('fetching')
+  })
+  it('opens the paste dialog with no operand', () => {
+    const openScenarioPaste = vi.fn()
+    runCommand('loadscenario', makeCtx({ openScenarioPaste }))
+    expect(openScenarioPaste).toHaveBeenCalled()
+  })
+})
+
 describe('cd', () => {
   it('rejects a non-directory', () => {
     const out = runCommand('cd note.txt', makeCtx())

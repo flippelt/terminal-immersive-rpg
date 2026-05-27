@@ -1,0 +1,26 @@
+{
+  "theme": "ibm",
+  "id": "demo-op",
+  "name": "Operation Nightjar (custom)",
+  "header": "NIGHTJAR // FIELD TERMINAL",
+  "motd": [
+    "FIELD TERMINAL — eyes only.",
+    "this is a CUSTOM scenario loaded at runtime (no repo edit).",
+    "",
+    "try: `cat brief.md`, `ls intel`, `query objective`, `crack intel/cache.dat`",
+    ""
+  ],
+  "dialog": {
+    "thinking": "...QUERYING FIELD DATABASE...",
+    "fallback": "NO MATCHING RECORD.",
+    "responses": [
+      { "match": ["objective", "mission", "goal"], "lines": ["OBJECTIVE: recover the cache. extract before dawn."] },
+      { "match": ["cache", "code", "password"], "type": "muted", "lines": ["the cache code is hidden in the brief. read between the lines."] }
+    ]
+  },
+  "files": {
+    "/brief.md": "# OPERATION NIGHTJAR\n\nRecover the intel cache before dawn.\n\n- contact: **RAVEN**\n- cache code: the year the lights went out — *1977*\n\n> burn after reading.",
+    "/intel/notes.log": "0300 — movement at the perimeter.\n0312 — RAVEN confirms drop point.\n0340 — go.",
+    "/intel/cache.dat": "---\nlocked: true\npassword: \"1977\"\ncrackable: true\ncrackDC: 13\ncrackAttempts: 3\nlockLabel: PEELING CACHE\n---\nCACHE CONTENTS:\n  - 3x encrypted dossiers\n  - 1x burst transmitter\n  - coordinates: 51.5, -0.12"
+  }
+}
