@@ -291,10 +291,12 @@ export default function Terminal({
   // normal unlock sequence (progress + reveal chain + events).
   const openFileViewer = useCallback((path, node) => setFileViewer({ path, node }), [])
 
-  // Won the cipher minigame: recover the key + evade the tracer, unlock the
-  // file now (so it's readable the instant the viewer opens), and run the
-  // ACCESS GRANTED → key auto-type cinematic. The terminal tail + file popup
-  // come when that cinematic completes (handleDecryptReveal).
+  // Won the cipher minigame: recover the key + evade the tracer and unlock
+  // the file now (so it's readable the instant the viewer opens). The screen
+  // sequence is: decrypt progress bar (%) -> ACCESS GRANTED + key auto-type
+  // cinematic -> file viewer. The bar runs first; its onComplete kicks off
+  // the cinematic. The terminal tail + file popup come when the cinematic
+  // ends (handleDecryptReveal).
   const handleDecryptWin = useCallback(() => {
     if (!decryptGame) return
     const { path, node } = decryptGame
@@ -302,8 +304,18 @@ export default function Terminal({
     const tr = themeRef.current.tracer
     if (tr && node.tracer && tracerEndsAt != null) setTracerEndsAt(null)
     unlock(path)
-    setDecryptSuccess({ path, node, key: node.password })
-  }, [decryptGame, unlock, tracerEndsAt])
+    const duration = node.decryptTime ?? themeRef.current.locks?.decryptDefault ?? 1500
+    const label = node.decryptLabel ?? themeRef.current.locks?.decryptLabel ?? 'DECRYPTING'
+    push([
+      {
+        type: 'progress',
+        duration,
+        label,
+        onComplete: () => setDecryptSuccess({ path, node, key: node.password })
+      },
+      { text: '', instant: true }
+    ])
+  }, [decryptGame, unlock, tracerEndsAt, push])
 
   // Cinematic finished: post the terminal record + any reveal-chain / event
   // tail, then open the freshly-decrypted file in the viewer popup.
