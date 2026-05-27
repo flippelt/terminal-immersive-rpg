@@ -55,22 +55,35 @@ function completePath(input, argPrefix, ctx) {
 
 export function complete(input, ctx) {
   const tokens = input.split(/\s+/)
-  // First token (or empty) -> complete a command name.
+  // First token (or empty) -> complete a command name. Themed aliases
+  // (e.g. `auspex`/`audit` -> check) and a scenario's custom commands are
+  // completable alongside the built-ins.
   if (tokens.length <= 1) {
     const prefix = tokens[0] ?? ''
-    const names = [...BUILTINS, ...Object.keys(ctx.theme?.commands ?? {})]
+    const names = [
+      ...BUILTINS,
+      ...Object.keys(ctx.theme?.commands ?? {}),
+      ...Object.keys(ctx.theme?.aliases ?? {})
+    ]
       .filter((n) => n.startsWith(prefix))
       .sort()
-    return finishWord(input, names)
+    return finishWord(input, [...new Set(names)])
   }
   const cmd = tokens[0]
   const argPrefix = tokens[tokens.length - 1]
+  // An alias inherits its target's argument completion (so `auspex <file>`
+  // completes paths just like `check <file>`). A custom command of the same
+  // name wins over the alias, matching runCommand's resolution.
+  const resolved =
+    !ctx.theme?.commands?.[cmd] && ctx.theme?.aliases?.[cmd]
+      ? ctx.theme.aliases[cmd]
+      : cmd
 
-  if (cmd === 'theme') {
+  if (resolved === 'theme') {
     const ids = (ctx.themes ?? []).map((t) => t.id).filter((id) => id.startsWith(argPrefix)).sort()
     return finishWord(input, ids)
   }
-  if (cmd === 'scenario') {
+  if (resolved === 'scenario') {
     if (tokens.length === 2) {
       return finishWord(input, ['list', 'load', 'status'].filter((a) => a.startsWith(argPrefix)))
     }
@@ -79,6 +92,6 @@ export function complete(input, ctx) {
     }
     return { value: input, list: [] }
   }
-  if (FILE_ARG.has(cmd)) return completePath(input, argPrefix, ctx)
+  if (FILE_ARG.has(resolved)) return completePath(input, argPrefix, ctx)
   return { value: input, list: [] }
 }

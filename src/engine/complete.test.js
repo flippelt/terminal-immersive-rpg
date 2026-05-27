@@ -49,6 +49,34 @@ describe('path completion', () => {
   })
 })
 
+describe('alias completion', () => {
+  const aliasCtx = {
+    ...ctx,
+    theme: { ...ctx.theme, aliases: { auspex: 'check', audit: 'check' } }
+  }
+  it('completes a themed alias command name', () => {
+    expect(complete('ausp', aliasCtx)).toEqual({ value: 'auspex ', list: [] })
+  })
+  it('lists aliases alongside builtins when ambiguous', () => {
+    const r = complete('a', aliasCtx) // audit, auspex
+    expect(r.list).toEqual(expect.arrayContaining(['audit', 'auspex']))
+  })
+  it('completes file paths for an alias of a file-arg command', () => {
+    expect(complete('auspex direc', aliasCtx)).toEqual({
+      value: 'auspex directive.txt ',
+      list: []
+    })
+  })
+  it('a custom command of the same name wins over an alias', () => {
+    const c = {
+      ...ctx,
+      theme: { ...ctx.theme, commands: { ...ctx.theme.commands, scan: [] }, aliases: { scan: 'check' } }
+    }
+    // `scan` is a static custom command here, so it takes no path argument
+    expect(complete('scan direc', c)).toEqual({ value: 'scan direc', list: [] })
+  })
+})
+
 describe('theme / scenario completion', () => {
   it('completes theme ids', () => {
     expect(complete('theme cp', ctx)).toEqual({ value: 'theme cprd ', list: [] })
