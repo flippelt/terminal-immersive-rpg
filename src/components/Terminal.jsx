@@ -4,6 +4,7 @@ import Prompt from './Prompt.jsx'
 import InputModal from './InputModal.jsx'
 import ProgressModal from './ProgressModal.jsx'
 import SelfDestructModal from './SelfDestructModal.jsx'
+import Tracer from './Tracer.jsx'
 
 const toLines = (val, type) =>
   (Array.isArray(val) ? val : [val])
@@ -62,6 +63,7 @@ export default function Terminal({
   const [authed, setAuthed] = useState(true)
   const [loginTries, setLoginTries] = useState(0)
   const [selfDestruct, setSelfDestruct] = useState(null)
+  const [tracerEndsAt, setTracerEndsAt] = useState(null)
   const scrollRef = useRef(null)
 
   // Keep a live ref to history so `advance` always reads the latest array
@@ -78,6 +80,7 @@ export default function Terminal({
     setModal(null)
     setCrackAttempts(new Map())
     setSelfDestruct(null)
+    setTracerEndsAt(null)
     const needsLogin = !!theme.login
     setAuthed(!needsLogin)
     setLoginTries(0)
@@ -211,9 +214,20 @@ export default function Terminal({
     setModal({ kind: 'decrypt', path, node })
   }, [])
 
-  const openCrackPrompt = useCallback((path, node) => {
-    setModal({ kind: 'crack', path, node })
-  }, [])
+  const openCrackPrompt = useCallback(
+    (path, node) => {
+      setModal({ kind: 'crack', path, node })
+      // Cyberpunk-style tracer: starts the first time a guarded file is
+      // cracked. Time + penalty come from theme.tracer (GM-configurable).
+      const tr = themeRef.current.tracer
+      if (tr) {
+        setTracerEndsAt((prev) =>
+          prev != null ? prev : Date.now() + (tr.seconds ?? 30) * 1000
+        )
+      }
+    },
+    []
+  )
 
   const handleModalSubmit = useCallback(
     (value) => {
@@ -246,6 +260,11 @@ export default function Terminal({
       }
       const used = (crackAttempts.get(path) ?? 0) + 1
       setCrackAttempts((m) => new Map(m).set(path, used))
+      // Each failed crack drags the tracer earlier (GM-configurable penalty).
+      const tr = themeRef.current.tracer
+      if (tr) {
+        setTracerEndsAt((t) => (t != null ? t - (tr.penalty ?? 7) * 1000 : t))
+      }
       const remaining = max - used
       const lines = [{ text: `roll ${roll} — FAILED${dcNote}`, type: 'err' }]
       lines.push(
@@ -379,6 +398,9 @@ export default function Terminal({
           onAbort={handleAbort}
           onDetonate={handleDetonate}
         />
+      )}
+      {tracerEndsAt != null && theme.tracer && (
+        <Tracer endsAt={tracerEndsAt} config={theme.tracer} />
       )}
     </>
   )

@@ -492,6 +492,61 @@
   pointer-events: none;
 }
 
+/* === Tracer corner popup (Cyberpunk-style "you are being traced") === */
+.tracer {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 30;
+  min-width: 220px;
+  padding: 10px 14px;
+  background: color-mix(in srgb, var(--error, #ff4444) 12%, rgba(0, 0, 0, 0.88));
+  border: 1px solid var(--error, #ff4444);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--error, #ff4444) 40%, transparent);
+  font-family: var(--font), monospace;
+  color: var(--error, #ff4444);
+  animation: modal-in 0.2s ease-out;
+}
+
+.tracer__title {
+  font-size: 0.72em;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  animation: alarm-pulse 0.8s steps(2, end) infinite;
+}
+
+.tracer__count {
+  font-size: 1.6em;
+  font-weight: bold;
+  letter-spacing: 2px;
+  font-variant-numeric: tabular-nums;
+  margin: 4px 0 6px;
+  text-shadow: 0 0 10px currentColor;
+}
+
+.tracer__bar {
+  height: 4px;
+  background: color-mix(in srgb, var(--error, #ff4444) 22%, transparent);
+  overflow: hidden;
+}
+
+.tracer__bar span {
+  display: block;
+  height: 100%;
+  background: var(--error, #ff4444);
+  box-shadow: 0 0 8px currentColor;
+  transition: width 0.25s linear;
+}
+
+.tracer--done {
+  animation: alarm-pulse 0.4s steps(2, end) infinite;
+}
+
+.tracer--done .tracer__bar span {
+  width: 100% !important;
+}
+
 /* === ASCII banner === */
 .banner {
   font-family: '3270 Nerd Font Mono', 'Courier New', monospace;
@@ -511,8 +566,14 @@
   .modal,
   .modal-overlay,
   .line--alarm,
-  .modal__header--alarm {
+  .modal__header--alarm,
+  .tracer,
+  .tracer__title,
+  .tracer--done {
     animation: none;
+  }
+  .tracer__bar span {
+    transition: none;
   }
 }
 

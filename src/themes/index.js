@@ -131,6 +131,7 @@ export function composeTheme(themeId, scenarioId) {
     motd: scenario.motd ?? theme.motd ?? [],
     login: scenario.login ?? theme.login ?? null,
     selfDestruct: scenario.selfDestruct ?? theme.selfDestruct ?? null,
+    tracer: scenario.tracer ?? theme.tracer ?? null,
     events: scenario.events ?? {},
     locks: { ...theme.locks, ...scenario.locks },
     commands: { ...theme.commands, ...scenario.commands },

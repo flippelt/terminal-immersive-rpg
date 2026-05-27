@@ -267,6 +267,22 @@ decrypt). Pode incluir qualquer tipo de linha — texto, `progress`, `countdown`
 }
 ```
 
+**Rastreador (`tracer`):** estilo Cyberpunk. Quando o jogador inicia um `crack`
+com teste de rolagem (arquivo com `crackDC`), abre um popup no **canto superior
+direito** com uma contagem regressiva silenciosa — só pra mostrar que ele está
+sendo rastreado. Cada rolagem falha **adianta** o rastreador. Tempo e punição
+são definidos pelo Mestre (no `scenario.json` ou no skin do tema).
+
+```jsonc
+"tracer": {
+  "seconds": 30,                          // tempo total da contagem
+  "penalty": 7,                           // segundos removidos por erro
+  "label": "ICE TRACE",                   // prefixo do contador
+  "active": "ICE TRACE ACTIVE",           // título enquanto rastreia
+  "complete": "TRACE COMPLETE — LOCATION FIXED"  // título ao zerar
+}
+```
+
 Desbloqueios duram até `reboot` ou troca de tema. `ls` marca `[LOCKED]`.
 
 ---

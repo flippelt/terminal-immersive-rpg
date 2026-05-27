@@ -1,6 +1,13 @@
 {
   "id": "heimdall",
   "name": "Case 4127-A — Project HEIMDALL",
+  "tracer": {
+    "seconds": 30,
+    "penalty": 7,
+    "label": "ICE TRACE",
+    "active": "ICE TRACE ACTIVE",
+    "complete": "TRACE COMPLETE — LOCATION FIXED"
+  },
   "events": {
     "/blackbox.dat": [
       { "text": ">>> UNAUTHORIZED READ DETECTED", "type": "err" },

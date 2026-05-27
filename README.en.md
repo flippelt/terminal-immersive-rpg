@@ -255,6 +255,22 @@ text, `progress`, `countdown`.
 }
 ```
 
+**Tracer (`tracer`):** Cyberpunk-style. When the player starts a roll-checked
+`crack` (a file with `crackDC`), a popup opens in the **top-right corner** with a
+silent countdown — just to show they're being traced. Each failed roll drags the
+tracer **earlier**. Time and penalty are set by the GM (in `scenario.json` or the
+theme skin).
+
+```jsonc
+"tracer": {
+  "seconds": 30,                          // total countdown time
+  "penalty": 7,                           // seconds removed per failed roll
+  "label": "ICE TRACE",                   // counter prefix
+  "active": "ICE TRACE ACTIVE",           // title while tracing
+  "complete": "TRACE COMPLETE — LOCATION FIXED"  // title at zero
+}
+```
+
 Unlocks persist per scenario (saved to localStorage); `reset` wipes them. `ls`
 marks locked files with `[LOCKED]`.
 
