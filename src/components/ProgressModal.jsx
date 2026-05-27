@@ -38,16 +38,19 @@ export default function ProgressModal({ label, duration = 5000, t = makeT('en'),
   }, [duration])
 
   const filled = Math.floor((pct / 100) * BAR_WIDTH)
-  const bar = '█'.repeat(filled) + '░'.repeat(BAR_WIDTH - filled)
+  // Use the SAME glyph for filled and empty cells (the empty run is just
+  // dimmed) so the track keeps a constant width as it fills. Mixing two
+  // glyphs (█ vs ░) drifts the closing bracket in fonts where the shade
+  // glyph has a different advance width — that was the IBM misalignment.
+  const fill = '█'.repeat(filled)
+  const track = '█'.repeat(BAR_WIDTH - filled)
   const spinner = pct < 100 ? SPINNER[spin] : '✓'
 
   return (
     <div className="modal-overlay" role="presentation">
       <div className="modal modal--progress" role="dialog" aria-label={labelText}>
         <div className="modal__header">{labelText}</div>
-        <pre className="modal__bar">
-          {spinner} [{bar}] {String(Math.floor(pct)).padStart(3, ' ')}%
-        </pre>
+        <pre className="modal__bar">{spinner} [<span className="modal__bar-fill">{fill}</span><span className="modal__bar-track">{track}</span>] {String(Math.floor(pct)).padStart(3, ' ')}%</pre>
       </div>
     </div>
   )

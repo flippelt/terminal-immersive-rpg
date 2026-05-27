@@ -648,6 +648,10 @@
   color: var(--accent, #88ff88);
   font-variant-numeric: tabular-nums;
 }
+/* Filled + empty cells share the █ glyph (constant width); the empty run is
+   just dimmed, so the bar never drifts as it fills. */
+.modal__bar-fill { color: var(--accent, #88ff88); }
+.modal__bar-track { color: var(--muted, #1a661a); opacity: 0.4; }
 
 @keyframes overlay-in {
   from { opacity: 0; }
