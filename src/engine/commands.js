@@ -423,7 +423,42 @@ const COMMANDS = {
     }
     // Inline path (script/power-user): key already provided.
     return buildDecryptLines(ctx.theme, path, node, key, ctx.unlock, ctx.fs)
+  },
+
+  query: (ctx) => runDialog(ctx),
+  ask: (ctx) => runDialog(ctx)
+}
+
+// Conversational interface ("talk to the ship AI"). Matches the player's
+// words against a GM-authored Q&A map in `theme.dialog`. Falls back to a
+// scenario's static `query` command when no dialog is configured, so the
+// built-in never clobbers an existing gag.
+function toDialogLines(val, type) {
+  return (Array.isArray(val) ? val : [val])
+    .filter((v) => v != null)
+    .map((v) => (typeof v === 'string' ? { text: v, type } : v))
+}
+
+function runDialog(ctx) {
+  const dialog = ctx.theme.dialog
+  if (!dialog) {
+    const custom = ctx.theme.commands?.query
+    if (custom) return makeCustom(custom)()
+    return [{ text: 'query: no interface available on this system.', type: 'muted' }]
   }
+  const q = ctx.args.join(' ').trim().toLowerCase()
+  if (!q) return toDialogLines(dialog.empty ?? 'SPECIFY QUERY.', 'muted')
+
+  const hit = (dialog.responses ?? []).find((r) =>
+    (Array.isArray(r.match) ? r.match : [r.match])
+      .filter(Boolean)
+      .some((m) => q.includes(String(m).toLowerCase()))
+  )
+  const head = dialog.thinking ? toDialogLines(dialog.thinking, 'muted') : []
+  const body = hit
+    ? toDialogLines(hit.lines, hit.type ?? 'normal')
+    : toDialogLines(dialog.fallback ?? 'INSUFFICIENT DATA. REPHRASE QUERY.', 'err')
+  return [...head, ...body]
 }
 
 // Unlock chains: when a file declares `reveals` (one path, or several

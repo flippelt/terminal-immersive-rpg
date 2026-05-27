@@ -176,6 +176,30 @@ describe('gmsheet', () => {
   })
 })
 
+describe('query / dialog', () => {
+  const dialog = {
+    thinking: 'PROCESSING...',
+    fallback: 'NO DATA.',
+    responses: [
+      { match: ['special order', '937'], type: 'err', lines: ['CREW EXPENDABLE.'] },
+      { match: 'organism', lines: ['UNCLASSIFIED.'] }
+    ]
+  }
+  it('matches a keyword and returns its lines', () => {
+    const out = runCommand('query what is special order 937', makeCtx({ theme: { dialog, commands: {} } }))
+    expect(out.some((l) => l.text === 'CREW EXPENDABLE.')).toBe(true)
+    expect(out.some((l) => l.text === 'PROCESSING...')).toBe(true)
+  })
+  it('falls back when nothing matches', () => {
+    const out = runCommand('query weather report', makeCtx({ theme: { dialog, commands: {} } }))
+    expect(out.some((l) => l.text === 'NO DATA.')).toBe(true)
+  })
+  it('defers to a scenario static query when no dialog is set', () => {
+    const out = runCommand('query anything', makeCtx({ theme: { commands: { query: ['ACCESS DENIED'] } } }))
+    expect(out[0].text).toBe('ACCESS DENIED')
+  })
+})
+
 describe('cd', () => {
   it('rejects a non-directory', () => {
     const out = runCommand('cd note.txt', makeCtx())

@@ -7,13 +7,48 @@
     "ALL OTHER CONSIDERATIONS SECONDARY. CREW EXPENDABLE.",
     "",
     "type `help` for commands. type `cat directive.md` to begin.",
+    "type `query <question>` to interface with MU/TH/UR 6000.",
     ""
   ],
+  "dialog": {
+    "thinking": "MU/TH/UR 6000 ... PROCESSING REQUEST ...",
+    "fallback": "UNABLE TO COMPUTE. RECONSIDER YOUR LAST STATEMENT.",
+    "responses": [
+      {
+        "match": ["special order", "937", "directive", "priority one"],
+        "type": "err",
+        "lines": [
+          "SPECIAL ORDER 937, SCIENCE OFFICER EYES ONLY:",
+          "RETURN ORGANISM FOR ANALYSIS. ALL OTHER PRIORITIES RESCINDED.",
+          "CREW EXPENDABLE."
+        ]
+      },
+      {
+        "match": ["organism", "alien", "creature", "xenomorph", "lifeform"],
+        "lines": [
+          "ORGANISM: UNCLASSIFIED. HOSTILE.",
+          "DO NOT ENGAGE. CONTAINMENT IS SECONDARY TO RECOVERY."
+        ]
+      },
+      {
+        "match": ["crew", "survive", "save", "help us", "rescue"],
+        "type": "err",
+        "lines": ["THE OPTION TO ABORT IS NOT AVAILABLE.", "CREW EXPENDABLE."]
+      },
+      {
+        "match": ["self destruct", "self-destruct", "destruct", "detonate", "blow"],
+        "lines": [
+          "EMERGENCY DESTRUCT SEQUENCE AVAILABLE.",
+          "COMMAND: `selfdestruct`. OVERRIDE CODE REQUIRED TO ABORT."
+        ]
+      },
+      {
+        "match": ["who are you", "muthur", "mother", "name", "identify"],
+        "lines": ["I AM MU/TH/UR 6000. MAINFRAME, USCSS NOSTROMO."]
+      }
+    ]
+  },
   "commands": {
-    "query": [
-      "ACCESS DENIED — SCIENCE OFFICER CLEARANCE REQUIRED.",
-      "RECONSIDER YOUR LAST REQUEST."
-    ],
     "override": [
       "OVERRIDE ACCEPTED. SPECIAL ORDER 937 INVOKED.",
       "CREW NON-ESSENTIAL.",
