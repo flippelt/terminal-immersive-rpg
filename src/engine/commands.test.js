@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { runCommand, buildDecryptLines } from './commands.js'
+import { runCommand, buildDecryptLines, buildCheckLines } from './commands.js'
 
 const fs = {
   '/': { type: 'dir', children: ['note.txt', 'secret.dat', 'next.dat'] },
@@ -293,6 +293,58 @@ describe('per-file tracer overrides', () => {
     const tripTracer = vi.fn()
     runCommand('crack o.dat', makeCtx({ fs: fsO, tripTracer, theme: { commands: {}, locks: {}, tracer: { nocrackSeconds: 5, label: 'T' } } }))
     expect(tripTracer).toHaveBeenCalledWith(3)
+  })
+})
+
+describe('check with difficulty (checkDC)', () => {
+  const dcFs = {
+    '/': { type: 'dir', children: ['v.dat'] },
+    '/v.dat': { type: 'file', locked: true, password: 'X', crackable: true, crackDC: 12, checkDC: 12, tracer: true }
+  }
+  const theme = { commands: {}, locks: {}, tracer: { label: 'ICE TRACE', seconds: 30, checkAlert: 'SUS' } }
+
+  it('opens the scan roll prompt instead of revealing posture', () => {
+    const openCheckPrompt = vi.fn()
+    const out = runCommand('check v.dat', makeCtx({ fs: dcFs, openCheckPrompt, theme }))
+    expect(openCheckPrompt).toHaveBeenCalledWith('/v.dat', dcFs['/v.dat'])
+    expect(out.some((l) => l.text.includes('MONITORED'))).toBe(false)
+  })
+  it('raises an alert on a repeat scan and does not re-roll', () => {
+    const openCheckPrompt = vi.fn()
+    const raiseAlert = vi.fn()
+    runCommand(
+      'check v.dat',
+      makeCtx({ fs: dcFs, openCheckPrompt, raiseAlert, checkResults: new Map([['/v.dat', 'precise']]), theme })
+    )
+    expect(openCheckPrompt).not.toHaveBeenCalled()
+    expect(raiseAlert).toHaveBeenCalledWith('SUS')
+  })
+  it('GM mode reveals the truth without a roll', () => {
+    const openCheckPrompt = vi.fn()
+    const out = runCommand('check v.dat', makeCtx({ fs: dcFs, openCheckPrompt, gmMode: true, theme }))
+    expect(openCheckPrompt).not.toHaveBeenCalled()
+    expect(out.some((l) => l.text.includes('MONITORED'))).toBe(true)
+  })
+})
+
+describe('buildCheckLines tiers', () => {
+  const theme = { tracer: { label: 'ICE TRACE', seconds: 30 } }
+  const node = { locked: true, password: 'X', crackable: true, crackDC: 10, tracer: true }
+  it('precise shows the surveillance window', () => {
+    const out = buildCheckLines(theme, '/v', node, { tier: 'precise', locked: true })
+    expect(out.some((l) => l.text.includes('MONITORED') && l.text.includes('30s'))).toBe(true)
+  })
+  it('ambiguous hedges the reading', () => {
+    const out = buildCheckLines(theme, '/v', node, { tier: 'ambiguous', locked: true })
+    expect(out.some((l) => l.text.toLowerCase().includes('noisy'))).toBe(true)
+  })
+  it('fail is inconclusive', () => {
+    const out = buildCheckLines(theme, '/v', node, { tier: 'fail', locked: true })
+    expect(out.some((l) => l.text.toLowerCase().includes('inconclusive'))).toBe(true)
+  })
+  it('false inverts the surveillance reading (watched → clear)', () => {
+    const out = buildCheckLines(theme, '/v', node, { tier: 'false', locked: true })
+    expect(out.some((l) => l.text.includes('surveillance: clear'))).toBe(true)
   })
 })
 

@@ -6,12 +6,13 @@ import ProgressModal from './ProgressModal.jsx'
 import SelfDestructModal from './SelfDestructModal.jsx'
 import Tracer from './Tracer.jsx'
 import TraceCaught from './TraceCaught.jsx'
+import IceAlert from './IceAlert.jsx'
 
 const toLines = (val, type) =>
   (Array.isArray(val) ? val : [val])
     .filter((v) => v != null)
     .map((v) => (typeof v === 'string' ? { text: v, type } : v))
-import { runCommand, buildDecryptLines, buildCrackLines } from '../engine/commands.js'
+import { runCommand, buildDecryptLines, buildCrackLines, buildCheckLines } from '../engine/commands.js'
 import { complete } from '../engine/complete.js'
 import { playBeep, playWhoosh } from '../audio/sfx.js'
 import { scenarioIdsFor } from '../themes/index.js'
@@ -82,6 +83,8 @@ export default function Terminal({
   const [tracerEndsAt, setTracerEndsAt] = useState(null)
   const [tracerTotal, setTracerTotal] = useState(null)
   const [caught, setCaught] = useState(null)
+  const [checkResults, setCheckResults] = useState(() => new Map())
+  const [iceAlert, setIceAlert] = useState(null)
   const scrollRef = useRef(null)
 
   // Keep a live ref to history so `advance` always reads the latest array
@@ -101,6 +104,8 @@ export default function Terminal({
     setTracerEndsAt(null)
     setTracerTotal(null)
     setCaught(null)
+    setCheckResults(new Map())
+    setIceAlert(null)
     const needsLogin = !!theme.login
     setAuthed(!needsLogin)
     setLoginTries(0)
@@ -234,6 +239,16 @@ export default function Terminal({
     setModal({ kind: 'decrypt', path, node })
   }, [])
 
+  const openCheckPrompt = useCallback((path, node) => {
+    setModal({ kind: 'check', path, node })
+  }, [])
+
+  // Suspicious-activity warning (e.g. a repeated scan). Warns only — never
+  // arms the tracer.
+  const raiseAlert = useCallback((message) => {
+    setIceAlert(message || 'SUSPICIOUS ACTIVITY DETECTED')
+  }, [])
+
   // Tracer hit zero. If the theme configures a `caught` climax (Cyberpunk),
   // run it; the sequence reboots the console when it ends.
   const handleTraceComplete = useCallback(() => {
@@ -294,6 +309,26 @@ export default function Terminal({
         ])
         return
       }
+      if (kind === 'check') {
+        // Scan roll: quality scales with the margin vs checkDC.
+        const roll = parseInt(value, 10)
+        if (!Number.isFinite(roll)) {
+          push([{ text: 'check: enter a number', type: 'err' }, { text: '', instant: true }])
+          return
+        }
+        const margin = roll - node.checkDC
+        const misleads = node.checkMisleadsOnFail ?? themeRef.current.checkMisleadsOnFail ?? false
+        const tier =
+          margin >= 5 ? 'precise' : margin >= -4 ? 'ambiguous' : misleads ? 'false' : 'fail'
+        setCheckResults((m) => new Map(m).set(path, tier))
+        const locked = !!node.locked && !unlocked.has(path)
+        push([
+          { text: `roll ${roll} — SCAN`, type: 'ok' },
+          ...buildCheckLines(theme, path, node, { tier, locked, gm: gmMode }),
+          { text: '', instant: true }
+        ])
+        return
+      }
       // crack roll check
       const dc = node.crackDC
       const max = node.crackAttempts ?? 3
@@ -347,7 +382,7 @@ export default function Terminal({
       lines.push({ text: '', instant: true })
       push(lines)
     },
-    [modal, push, theme, unlock, gmMode, crackAttempts, tracerEndsAt]
+    [modal, push, theme, unlock, gmMode, crackAttempts, tracerEndsAt, unlocked]
   )
 
   const handleModalCancel = useCallback(() => {
@@ -380,8 +415,11 @@ export default function Terminal({
         resetProgress,
         openPasswordPrompt,
         openCrackPrompt,
+        openCheckPrompt,
         openSelfDestruct,
         tripTracer,
+        raiseAlert,
+        checkResults,
         crackAttempts,
         gmMode,
         toggleGm: onToggleGm,
@@ -394,7 +432,7 @@ export default function Terminal({
       if (out.length) push(out)
       push([{ text: '', instant: true }])
     },
-    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, resetProgress, openPasswordPrompt, openCrackPrompt, openSelfDestruct, tripTracer, crackAttempts, gmMode, onToggleGm, onSwitchScenario, onLoadScenarioUrl, onOpenScenarioPaste, onShareScenario]
+    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, resetProgress, openPasswordPrompt, openCrackPrompt, openCheckPrompt, openSelfDestruct, tripTracer, raiseAlert, checkResults, crackAttempts, gmMode, onToggleGm, onSwitchScenario, onLoadScenarioUrl, onOpenScenarioPaste, onShareScenario]
   )
 
   const inputReady = animIdx >= history.length
@@ -453,9 +491,9 @@ export default function Terminal({
       )}
       {modal && (
         <InputModal
-          title={`${modal.kind === 'crack' ? 'CRACK' : 'DECRYPT'} // ${modal.path}`}
-          label={modal.kind === 'crack' ? 'enter your roll:' : 'enter key:'}
-          inputType={modal.kind === 'crack' ? 'number' : 'text'}
+          title={`${modal.kind === 'crack' ? 'CRACK' : modal.kind === 'check' ? 'SCAN' : 'DECRYPT'} // ${modal.path}`}
+          label={modal.kind === 'decrypt' ? 'enter key:' : 'enter your roll:'}
+          inputType={modal.kind === 'decrypt' ? 'text' : 'number'}
           onSubmit={handleModalSubmit}
           onCancel={handleModalCancel}
         />
@@ -479,6 +517,7 @@ export default function Terminal({
         <Tracer endsAt={tracerEndsAt} total={tracerTotal} config={theme.tracer} onComplete={handleTraceComplete} />
       )}
       {caught && <TraceCaught config={caught} onReboot={handleCaughtReboot} />}
+      {iceAlert && <IceAlert message={iceAlert} onClose={() => setIceAlert(null)} />}
     </>
   )
 }

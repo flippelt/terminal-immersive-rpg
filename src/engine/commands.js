@@ -171,47 +171,39 @@ const COMMANDS = {
     return []
   },
 
-  // Recon: read a file's security posture without touching it — whether it
-  // is encrypted, brute-forceable, and (crucially) whether it is *watched*
-  // (arms the tracer on intrusion). Passive: never trips anything.
+  // Recon: read a file's security posture — encryption, brute-force, and
+  // (crucially) whether it is *watched* (arms the tracer on intrusion).
+  // Passive & free by default; if the file sets `checkDC` the scan becomes a
+  // roll, resolved ONCE per file (its quality scales with the result). A
+  // second scan of the same file raises a (configurable) suspicious-activity
+  // alert — it warns, it does NOT start the trace. GM mode sees the truth.
   check: (ctx) => {
     if (!ctx.args[0]) return [{ text: 'check: missing operand', type: 'err' }]
     const { path, node } = resolveTarget(ctx, ctx.args[0])
     if (!node) return [{ text: `check: ${path}: no such file`, type: 'err' }]
     if (node.type !== 'file')
       return [{ text: `check: ${path}: is a directory`, type: 'err' }]
+    const locked = isLocked(node, ctx, path)
 
-    const out = [{ text: `SECURITY SCAN // ${path}`, type: 'ok' }]
-    if (!isLocked(node, ctx, path)) {
-      out.push({ text: '  state: OPEN — no protection detected', type: 'muted' })
-      return out
+    if (ctx.gmMode) {
+      return buildCheckLines(ctx.theme, path, node, { tier: 'precise', locked, gm: true })
     }
-    out.push({ text: '  state: ENCRYPTED' })
-    if (node.crackable === false) {
-      out.push({ text: '  brute-force: HARDENED — password required', type: 'muted' })
-    } else if (node.crackDC != null) {
-      const dc = ctx.gmMode ? ` (DC ${node.crackDC})` : ''
-      out.push({ text: `  brute-force: possible — difficulty check${dc}`, type: 'muted' })
-    } else {
-      out.push({ text: '  brute-force: possible', type: 'muted' })
-    }
-    if (node.tracer && ctx.theme.tracer) {
-      const tr = ctx.theme.tracer
-      const label = tr.label ?? 'TRACE'
-      const secs = node.tracerSeconds ?? tr.seconds ?? 30
-      out.push({ text: `  surveillance: MONITORED — ${label} (${secs}s window) on intrusion ⚠`, type: 'err' })
-      if (ctx.gmMode) {
-        const penalty = node.tracerPenalty ?? tr.penalty ?? 7
-        const startAfter = node.tracerStartAfter ?? tr.startAfter ?? 0
-        out.push({ text: `  ★ tracer: -${penalty}s/fail · arms after ${startAfter} fail(s)`, type: 'muted' })
+    if (locked && node.checkDC != null) {
+      const prev = ctx.checkResults?.get(path)
+      if (prev) {
+        // Already scanned once. A repeat scan trips a suspicious-activity
+        // alert if configured (warning only — does not start the trace).
+        const alert = node.checkAlert ?? ctx.theme.tracer?.checkAlert
+        if (alert) ctx.raiseAlert?.(alert)
+        return [
+          { text: `${path} — re-scan; using cached result.`, type: 'muted' },
+          ...buildCheckLines(ctx.theme, path, node, { tier: prev, locked })
+        ]
       }
-    } else {
-      out.push({ text: '  surveillance: clear', type: 'muted' })
+      ctx.openCheckPrompt?.(path, node)
+      return [{ text: `${path} — running scan. enter your roll.`, type: 'muted' }]
     }
-    if (ctx.gmMode && node.password) {
-      out.push({ text: `  ★ pwd:${node.password}`, type: 'muted' })
-    }
-    return out
+    return buildCheckLines(ctx.theme, path, node, { tier: 'precise', locked })
   },
 
   cat: (ctx) => {
@@ -582,6 +574,73 @@ function buildEventLines(theme, path) {
   const ev = theme.events?.[path]
   if (!Array.isArray(ev)) return []
   return ev.map((l) => (typeof l === 'string' ? { text: l } : l))
+}
+
+// Render a `check` scan. `tier` scales detail with the scan roll:
+//   precise   — full posture (window, and DC/penalty/pwd in GM mode)
+//   ambiguous — hedged: "possible monitoring?", no fine numbers
+//   fail      — inconclusive, no reliable data
+//   false     — a misleading reading (reports the OPPOSITE surveillance);
+//               only used when checkMisleadsOnFail is enabled
+export function buildCheckLines(theme, path, node, { tier = 'precise', locked = false, gm = false } = {}) {
+  const out = [{ text: `SECURITY SCAN // ${path}`, type: 'ok' }]
+  if (!locked) {
+    out.push({ text: '  state: OPEN — no protection detected', type: 'muted' })
+    return out
+  }
+  if (tier === 'fail') {
+    out.push({ text: '  scan inconclusive — no reliable data.', type: 'muted' })
+    return out
+  }
+  const watched = !!(node.tracer && theme.tracer)
+  const label = theme.tracer?.label ?? 'TRACE'
+  out.push({ text: '  state: ENCRYPTED' })
+
+  if (tier === 'false') {
+    // Deliberately wrong: invert the surveillance reading.
+    out.push({ text: '  brute-force: possible', type: 'muted' })
+    out.push(
+      watched
+        ? { text: '  surveillance: clear', type: 'muted' }
+        : { text: `  surveillance: MONITORED — ${label} on intrusion ⚠`, type: 'err' }
+    )
+    out.push({ text: '  [low-confidence scan]', type: 'muted' })
+    return out
+  }
+
+  if (node.crackable === false) {
+    out.push({ text: '  brute-force: HARDENED — password required', type: 'muted' })
+  } else if (node.crackDC != null) {
+    const dc = gm ? ` (DC ${node.crackDC})` : ''
+    out.push({ text: `  brute-force: possible — difficulty check${dc}`, type: 'muted' })
+  } else {
+    out.push({ text: '  brute-force: possible', type: 'muted' })
+  }
+
+  if (tier === 'ambiguous') {
+    out.push({
+      text: watched
+        ? '  surveillance: signal noisy — possible monitoring?'
+        : '  surveillance: signal noisy — inconclusive',
+      type: 'muted'
+    })
+    return out
+  }
+
+  // precise
+  if (watched) {
+    const secs = node.tracerSeconds ?? theme.tracer.seconds ?? 30
+    out.push({ text: `  surveillance: MONITORED — ${label} (${secs}s window) on intrusion ⚠`, type: 'err' })
+    if (gm) {
+      const penalty = node.tracerPenalty ?? theme.tracer.penalty ?? 7
+      const startAfter = node.tracerStartAfter ?? theme.tracer.startAfter ?? 0
+      out.push({ text: `  ★ tracer: -${penalty}s/fail · arms after ${startAfter} fail(s)`, type: 'muted' })
+    }
+  } else {
+    out.push({ text: '  surveillance: clear', type: 'muted' })
+  }
+  if (gm && node.password) out.push({ text: `  ★ pwd:${node.password}`, type: 'muted' })
+  return out
 }
 
 // The brute-force success sequence. Used by the plain crack flow and by
