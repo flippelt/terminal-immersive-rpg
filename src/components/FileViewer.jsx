@@ -1,7 +1,7 @@
-import { useEffect } from 'react'
 import OutputLine from './OutputLine.jsx'
 import { renderFileContent } from '../engine/commands.js'
 import { makeT } from '../i18n/ui.js'
+import { useEscapeKey } from '../hooks/useEscapeKey.js'
 
 // Cinematic file reader: `cat` opens an unlocked file in this CRT popup
 // instead of dumping it inline. Content (text, markdown, CRT-filtered
@@ -9,16 +9,7 @@ import { makeT } from '../i18n/ui.js'
 // inline look. The body scrolls when the file is long; close with the ×
 // button, Esc, or by clicking the backdrop.
 export default function FileViewer({ path, node, t = makeT('en'), onClose }) {
-  useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === 'Escape') {
-        e.preventDefault()
-        onClose?.()
-      }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
+  useEscapeKey(onClose)
 
   const lines = renderFileContent(path, node)
 
