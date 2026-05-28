@@ -91,6 +91,10 @@ export default function HelpPopup({
     (e) => {
       if (isMobile) return
       if (e.button !== undefined && e.button !== 0) return
+      // The close button lives inside the header for layout; if the pointer
+      // landed on it (or any future control inside the header), don't start
+      // a drag — otherwise setPointerCapture below would swallow the click.
+      if (e.target.closest?.('.help-popup__close')) return
       const cur = pos ?? { x: 0, y: 0 }
       dragRef.current = {
         startX: e.clientX,
@@ -194,6 +198,7 @@ export default function HelpPopup({
           className="help-popup__close"
           type="button"
           onClick={onClose}
+          onPointerDown={(e) => e.stopPropagation()}
           aria-label={t('viewer.close')}
           title={t('viewer.close')}
         >

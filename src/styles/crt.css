@@ -1063,7 +1063,18 @@
   padding: 12px 16px;
   font-size: 0.92em;
   line-height: 1.45;
+  /* Match the terminal's own scrollbar: thin track, theme-muted thumb.
+     The colors come from the active theme's CSS variables, so the help
+     popup's scrollbar stays in lockstep with the surrounding CRT chrome. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted) transparent;
 }
+.help-popup__body::-webkit-scrollbar { width: 6px; }
+.help-popup__body::-webkit-scrollbar-thumb {
+  background: var(--muted);
+  border-radius: 3px;
+}
+.help-popup__body::-webkit-scrollbar-track { background: transparent; }
 .help-popup__row {
   display: flex;
   flex-wrap: wrap;

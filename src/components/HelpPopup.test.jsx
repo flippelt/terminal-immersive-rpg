@@ -71,4 +71,20 @@ describe('HelpPopup', () => {
     fireEvent.keyDown(window, { key: 'Escape' })
     expect(onClose).toHaveBeenCalledTimes(2)
   })
+
+  it('does not let the header drag swallow the × button click (regression)', () => {
+    // The X button lives inside the draggable header. If pointerdown is
+    // allowed to bubble, the header runs setPointerCapture and the click
+    // event never reaches the button. Drive the realistic pointer sequence
+    // and assert onClose still fires.
+    const onClose = vi.fn()
+    const { container } = render(
+      <HelpPopup theme={baseTheme()} t={makeT('en')} onClose={onClose} />
+    )
+    const close = container.querySelector('.help-popup__close')
+    fireEvent.pointerDown(close, { button: 0, pointerId: 1 })
+    fireEvent.pointerUp(close, { button: 0, pointerId: 1 })
+    fireEvent.click(close)
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
 })
