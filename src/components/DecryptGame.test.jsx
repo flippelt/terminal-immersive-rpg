@@ -65,3 +65,45 @@ describe('DecryptGame input (mobile soft-keyboard)', () => {
     expect(onCancel).toHaveBeenCalled()
   })
 })
+
+describe('DecryptGame onLose (defeat path)', () => {
+  it('fires onLose after the configured number of wrong guesses', () => {
+    vi.useFakeTimers()
+    try {
+      const onLose = vi.fn()
+      const onWin = vi.fn()
+      // 4 attempts is the floor; target ABCDE doesn't match WRONG.
+      const { container } = render(
+        <DecryptGame target="ABCDE" attempts={4} onWin={onWin} onLose={onLose} onCancel={() => {}} />
+      )
+      const input = capture(container)
+      for (let i = 0; i < 4; i++) {
+        fireEvent.change(input, { target: { value: 'WRONG' } })
+        fireEvent.keyDown(input, { key: 'Enter' })
+      }
+      act(() => vi.advanceTimersByTime(800))
+      expect(onLose).toHaveBeenCalledTimes(1)
+      expect(onWin).not.toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('does not advance the guess when Enter is pressed with a partial word', () => {
+    const onWin = vi.fn()
+    const onLose = vi.fn()
+    const { container } = render(
+      <DecryptGame target="CIPHER" onWin={onWin} onLose={onLose} onCancel={() => {}} />
+    )
+    const input = capture(container)
+    // Partial guess (CIP for a 6-letter target).
+    fireEvent.change(input, { target: { value: 'CIP' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+    // No row should have been committed yet — only one (empty) typing row.
+    expect(rowCount(container)).toBe(6)
+    const committed = container.querySelectorAll('.wordle__row .wordle__tile--miss, .wordle__row .wordle__tile--hit, .wordle__row .wordle__tile--present')
+    expect(committed.length).toBe(0)
+    expect(onWin).not.toHaveBeenCalled()
+    expect(onLose).not.toHaveBeenCalled()
+  })
+})
