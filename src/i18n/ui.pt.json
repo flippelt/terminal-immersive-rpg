@@ -168,6 +168,10 @@
 
   "viewer.hint": "esc / × para fechar",
   "viewer.close": "fechar",
+  "switcher.system": "sistema",
+  "switcher.language": "idioma",
+  "switcher.gm.enable": "habilitar para jogadores",
+  "switcher.gm.disable": "desabilitar para jogadores",
   "decrypt.granted": "ACESSO LIBERADO",
   "decrypt.keyrecovered": "CHAVE RECUPERADA",
   "decrypt.solved": ">>> cifra resolvida — chave recuperada: {key}",
