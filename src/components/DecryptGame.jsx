@@ -100,19 +100,10 @@ export default function DecryptGame({
     setCur(e.target.value.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, len))
   }
 
-  // Cancel paths (Esc, backdrop click) ALSO consume the luck slot — the
-  // "one shot per file" promise covers every opening of the minigame, not
-  // just opening + interacting. Without this, players could bounce in and
-  // out via Esc and farm fresh rolls.
-  const cancelGame = () => {
-    consumeLuck()
-    onCancel?.()
-  }
-
   const onKeyDown = (e) => {
     if (e.key === 'Escape') {
       e.preventDefault()
-      cancelGame()
+      onCancel?.()
     } else if (e.key === 'Enter') {
       e.preventDefault()
       submit()
@@ -157,7 +148,7 @@ export default function DecryptGame({
   const luckActive = !luckUsed && rows.length === 0
 
   return (
-    <div className="modal-overlay" role="presentation" onClick={cancelGame}>
+    <div className="modal-overlay" role="presentation" onClick={onCancel}>
       <div className="modal-stack" onClick={(e) => e.stopPropagation()}>
         {luckActive && <WordleLuckPopup t={t} onCommit={onLuckCommit} />}
         <div

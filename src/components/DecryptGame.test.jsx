@@ -221,29 +221,17 @@ describe('DecryptGame luck popup integration', () => {
     expect(onLuckConsumed).toHaveBeenCalledTimes(1)
   })
 
-  it('fires onLuckConsumed when the player cancels (Esc) — opening the minigame uses the slot', () => {
+  it('does not fire onLuckConsumed when the player just cancels (Esc) without interacting', () => {
     const onLuckConsumed = vi.fn()
     const onCancel = vi.fn()
     const { container } = render(
       <DecryptGame target="CIPHER" onLuckConsumed={onLuckConsumed} onWin={() => {}} onLose={() => {}} onCancel={onCancel} />
     )
-    // The "one shot per file" promise covers every opening of the minigame:
-    // Esc cancels also burn the luck slot, so players can't bounce in/out to
-    // farm fresh rolls.
+    // Esc on the wordle's hidden capture cancels the game; luck remains
+    // available for the next time the player opens this file.
     fireEvent.keyDown(capture(container), { key: 'Escape' })
     expect(onCancel).toHaveBeenCalledTimes(1)
-    expect(onLuckConsumed).toHaveBeenCalledTimes(1)
-  })
-
-  it('fires onLuckConsumed when the player cancels via backdrop click', () => {
-    const onLuckConsumed = vi.fn()
-    const onCancel = vi.fn()
-    const { container } = render(
-      <DecryptGame target="CIPHER" onLuckConsumed={onLuckConsumed} onWin={() => {}} onLose={() => {}} onCancel={onCancel} />
-    )
-    fireEvent.click(container.querySelector('.modal-overlay'))
-    expect(onCancel).toHaveBeenCalledTimes(1)
-    expect(onLuckConsumed).toHaveBeenCalledTimes(1)
+    expect(onLuckConsumed).not.toHaveBeenCalled()
   })
 
   it('respects luck={false} (Terminal already saw this file consume luck)', () => {
