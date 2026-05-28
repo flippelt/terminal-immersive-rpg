@@ -663,7 +663,7 @@ export default function Terminal({
       {decryptGame && (
         <DecryptGame
           target={decryptGame.target ?? decryptGame.node.decryptTarget}
-          attempts={decryptGame.node.decryptAttempts ?? 6}
+          attempts={decryptGame.node.decryptAttempts}
           label={decryptGame.node.decryptLabel}
           t={tRef.current}
           onWin={handleDecryptWin}

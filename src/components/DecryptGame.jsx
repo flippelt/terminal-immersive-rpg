@@ -4,9 +4,13 @@ import { makeT } from '../i18n/ui.js'
 
 // `decrypt` minigame: a Wordle-style keyword hunt. Type letters, Enter to
 // submit a full-length guess, Esc to cancel. Win/lose fire the callbacks.
-export default function DecryptGame({ target, attempts = 6, label, t = makeT('en'), onWin, onLose, onCancel }) {
+export default function DecryptGame({ target, attempts, label, t = makeT('en'), onWin, onLose, onCancel }) {
   const word = String(target).toUpperCase()
   const len = word.length
+  // GM override: `decryptAttempts` front-matter sets the max guesses.
+  // Default 6, with a hard floor of 4 so a file can never be made
+  // unreasonably tight.
+  const tries = Math.max(4, Number.isFinite(attempts) ? attempts : 6)
   const [rows, setRows] = useState([]) // [{ letters:[], score:[] }]
   const [cur, setCur] = useState('')
   const [done, setDone] = useState(false)
@@ -27,7 +31,7 @@ export default function DecryptGame({ target, attempts = 6, label, t = makeT('en
         if (isWin(cur, word)) {
           setDone(true)
           setTimeout(() => onWin?.(), 600)
-        } else if (next.length >= attempts) {
+        } else if (next.length >= tries) {
           setDone(true)
           setTimeout(() => onLose?.(), 700)
         }
@@ -41,9 +45,9 @@ export default function DecryptGame({ target, attempts = 6, label, t = makeT('en
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [cur, rows, done, len, word, attempts, onWin, onLose, onCancel])
+  }, [cur, rows, done, len, word, tries, onWin, onLose, onCancel])
 
-  const remaining = attempts - rows.length
+  const remaining = tries - rows.length
 
   return (
     <div className="modal-overlay" role="presentation" onClick={onCancel}>
@@ -56,7 +60,7 @@ export default function DecryptGame({ target, attempts = 6, label, t = makeT('en
       >
         <div className="modal__header">{label ?? t('modal.decrypt.header')} {'//'} {len} {t('modal.decrypt.chars')}</div>
         <div className="wordle">
-          {Array.from({ length: attempts }).map((_, r) => {
+          {Array.from({ length: tries }).map((_, r) => {
             const row = rows[r]
             const typing = r === rows.length && !done
             return (
