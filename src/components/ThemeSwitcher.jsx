@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { makeT } from '../i18n/ui.js'
 
 const LANGS = [
   ['en', 'EN'],
@@ -18,6 +19,7 @@ export default function ThemeSwitcher({
   lang,
   onSetLang
 }) {
+  const t = makeT(lang)
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
@@ -45,7 +47,7 @@ export default function ThemeSwitcher({
     <div className="theme-switcher" ref={ref}>
       {open && (
         <div className="theme-switcher__menu">
-          <p className="switcher__label">system</p>
+          <p className="switcher__label">{t('switcher.system')}</p>
           <div className="switcher__row">
           {visible.map((t) => {
             const isOff = disabled?.has(t.id)
@@ -68,7 +70,7 @@ export default function ThemeSwitcher({
                   <button
                     className="switcher-chip__toggle"
                     onClick={() => onToggleDisabled(t.id)}
-                    title={isOff ? 'enable for players' : 'disable for players'}
+                    title={isOff ? t('switcher.gm.enable') : t('switcher.gm.disable')}
                     aria-label={isOff ? `enable ${t.id}` : `disable ${t.id}`}
                   >
                     {isOff ? '+' : '×'}
@@ -78,7 +80,7 @@ export default function ThemeSwitcher({
             )
           })}
           </div>
-          <p className="switcher__label">language</p>
+          <p className="switcher__label">{t('switcher.language')}</p>
           <div className="switcher__row">
             {LANGS.map(([code, label]) => (
               <span key={code} className="switcher-chip">
