@@ -97,9 +97,31 @@ describe('crack', () => {
     expect(out.some((l) => l.text?.includes('/next.dat'))).toBe(true)
     expect(out.some((l) => l.text?.includes('FISH'))).toBe(true)
   })
-  it('refuses an un-crackable file', () => {
+  it('refuses an un-crackable file via a failure directive', () => {
     const out = runCommand('crack next.dat', makeCtx())
-    expect(out[0].type).toBe('err')
+    expect(out).toHaveLength(1)
+    expect(out[0]).toMatchObject({ type: 'failure' })
+    expect(out[0].message).toContain('hardened')
+    // No tracer trip on a non-watched hardened file.
+    expect(out[0].tracerTrip).toBeNull()
+    expect(out[0].historyLines?.[0]).toMatchObject({ type: 'err' })
+  })
+  it('hardened file with tracer trips trace via the failure directive (deferred)', () => {
+    const watchedFs = {
+      '/': { type: 'dir', children: ['vault.dat'] },
+      '/vault.dat': { type: 'file', locked: true, crackable: false, tracer: true, tracerNocrackSeconds: 7 }
+    }
+    const ctx = makeCtx({
+      fs: watchedFs,
+      theme: { id: 't', name: 'T', commands: {}, locks: {}, tracer: { label: 'TRACE' } },
+      tripTracer: vi.fn()
+    })
+    const out = runCommand('crack vault.dat', ctx)
+    expect(out[0]).toMatchObject({ type: 'failure' })
+    expect(out[0].tracerTrip).toEqual({ seconds: 7 })
+    // The tracer side-effect now waits for the popup close — commands.js
+    // must NOT have called tripTracer at command-dispatch time.
+    expect(ctx.tripTracer).not.toHaveBeenCalled()
   })
 })
 
@@ -136,9 +158,12 @@ describe('crack with difficulty (crackDC)', () => {
 
 describe('buildDecryptLines', () => {
   const theme = { locks: {} }
-  it('rejects a wrong key', () => {
+  it('rejects a wrong key via a failure directive', () => {
     const out = buildDecryptLines(theme, '/secret.dat', fs['/secret.dat'], 'NOPE', vi.fn(), fs)
-    expect(out[0].type).toBe('err')
+    expect(out).toHaveLength(1)
+    expect(out[0]).toMatchObject({ type: 'failure' })
+    expect(out[0].message).toContain('key rejected')
+    expect(out[0].historyLines?.[0]).toMatchObject({ type: 'err' })
   })
   it('accepts the right key, unlocks, and reveals the chain', () => {
     const unlock = vi.fn()
@@ -300,7 +325,7 @@ describe('check', () => {
 })
 
 describe('crack on a hardened watched file', () => {
-  it('trips the tracer fast and refuses', () => {
+  it('refuses and queues a deferred tracer trip on the failure directive', () => {
     const hardened = {
       '/': { type: 'dir', children: ['h.dat'] },
       '/h.dat': { type: 'file', locked: true, password: 'X', crackable: false, tracer: true }
@@ -310,8 +335,10 @@ describe('crack on a hardened watched file', () => {
       'crack h.dat',
       makeCtx({ fs: hardened, tripTracer, theme: { commands: {}, locks: {}, tracer: { nocrackSeconds: 5, label: 'ICE TRACE' } } })
     )
-    expect(tripTracer).toHaveBeenCalledWith(5)
-    expect(out[0].type).toBe('err')
+    // The tracer must NOT be tripped at command-dispatch time — it waits for
+    // the failure popup to close (Terminal handles the deferred trip).
+    expect(tripTracer).not.toHaveBeenCalled()
+    expect(out[0]).toMatchObject({ type: 'failure', tracerTrip: { seconds: 5 } })
   })
 })
 
@@ -324,14 +351,15 @@ describe('per-file tracer overrides', () => {
     const out = runCommand('check o.dat', makeCtx({ fs: fsO, theme: { commands: {}, locks: {}, tracer: { seconds: 30, label: 'T' } } }))
     expect(out.some((l) => l.text.includes('12s window'))).toBe(true)
   })
-  it('nocrack fast-trace honors the file override', () => {
+  it('nocrack fast-trace honors the file override (carried by the failure directive)', () => {
     const fsO = {
       '/': { type: 'dir', children: ['o.dat'] },
       '/o.dat': { type: 'file', locked: true, password: 'X', crackable: false, tracer: true, tracerNocrackSeconds: 3 }
     }
     const tripTracer = vi.fn()
-    runCommand('crack o.dat', makeCtx({ fs: fsO, tripTracer, theme: { commands: {}, locks: {}, tracer: { nocrackSeconds: 5, label: 'T' } } }))
-    expect(tripTracer).toHaveBeenCalledWith(3)
+    const out = runCommand('crack o.dat', makeCtx({ fs: fsO, tripTracer, theme: { commands: {}, locks: {}, tracer: { nocrackSeconds: 5, label: 'T' } } }))
+    expect(tripTracer).not.toHaveBeenCalled()
+    expect(out[0].tracerTrip).toEqual({ seconds: 3 })
   })
 })
 
@@ -421,9 +449,9 @@ describe('i18n (lang in ctx)', () => {
     const out = runCommand('cat secret.dat', makeCtx({ lang: 'pt' }))
     expect(out[0].text).toContain('ACESSO NEGADO')
   })
-  it('localizes the help title (pt)', () => {
+  it('help hands off to the HelpPopup via a helpview directive', () => {
     const out = runCommand('help', makeCtx({ lang: 'pt' }))
-    expect(out[0].text).toBe('COMANDOS')
+    expect(out).toEqual([{ type: 'helpview' }])
   })
   it('defaults to English when no lang is given', () => {
     const out = runCommand('cat', makeCtx())
