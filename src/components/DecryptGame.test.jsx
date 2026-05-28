@@ -274,4 +274,91 @@ describe('DecryptGame luck popup integration', () => {
     fireEvent.keyDown(capture(container), { key: 'Enter' })
     expect(onLuckConsumed).not.toHaveBeenCalled()
   })
+
+  it('hands the resolved effect to onLuckConsumed (lose path)', () => {
+    vi.useFakeTimers()
+    try {
+      const onLuckConsumed = vi.fn()
+      const { container } = render(
+        <DecryptGame target="CIPHER" attempts={6} onLuckConsumed={onLuckConsumed} onWin={() => {}} onLose={() => {}} onCancel={() => {}} />
+      )
+      fireEvent.change(luckInput(container), { target: { value: '1' } })
+      fireEvent.keyDown(luckInput(container), { key: 'Enter' })
+      act(() => vi.advanceTimersByTime(1800))
+      expect(onLuckConsumed).toHaveBeenCalledWith({ kind: 'lose', lostByLuck: 2 })
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('hands the resolved positions to onLuckConsumed (reveal path)', () => {
+    vi.useFakeTimers()
+    try {
+      const onLuckConsumed = vi.fn()
+      const { container } = render(
+        <DecryptGame target="CIPHER" onLuckConsumed={onLuckConsumed} onWin={() => {}} onLose={() => {}} onCancel={() => {}} />
+      )
+      fireEvent.change(luckInput(container), { target: { value: '20' } })
+      fireEvent.keyDown(luckInput(container), { key: 'Enter' })
+      act(() => vi.advanceTimersByTime(1800))
+      expect(onLuckConsumed).toHaveBeenCalledTimes(1)
+      const [call] = onLuckConsumed.mock.calls
+      expect(call[0].kind).toBe('reveal')
+      expect(call[0].positions).toHaveLength(3)
+      for (const p of call[0].positions) {
+        expect(p).toBeGreaterThanOrEqual(0)
+        expect(p).toBeLessThan(6) // word "CIPHER" length
+      }
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('hands undefined to onLuckConsumed when the player skips via a guess', () => {
+    const onLuckConsumed = vi.fn()
+    const { container } = render(
+      <DecryptGame target="CIPHER" onLuckConsumed={onLuckConsumed} onWin={() => {}} onLose={() => {}} onCancel={() => {}} />
+    )
+    fireEvent.change(capture(container), { target: { value: 'WRONGW' } })
+    fireEvent.keyDown(capture(container), { key: 'Enter' })
+    expect(onLuckConsumed).toHaveBeenCalledWith(undefined)
+  })
+
+  it('restores burned rows from initialLostByLuck (post-remount with stored bad roll)', () => {
+    const { container } = render(
+      <DecryptGame
+        target="CIPHER"
+        attempts={6}
+        luck={false}
+        initialLostByLuck={2}
+        onWin={() => {}}
+        onLose={() => {}}
+        onCancel={() => {}}
+      />
+    )
+    expect(luckRoot(container)).toBeNull()
+    const burned = container.querySelectorAll('.wordle__row--burned')
+    expect(burned.length).toBe(2)
+    // The footer should reflect the reduced attempt count: 6 total - 2 burned = 4 left.
+    expect(container.querySelector('.modal__footer').textContent).toContain('4')
+  })
+
+  it('restores the hint row from initialRevealed (post-remount with stored good roll)', () => {
+    const { container } = render(
+      <DecryptGame
+        target="CIPHER"
+        luck={false}
+        initialRevealed={[0, 2, 4]}
+        onWin={() => {}}
+        onLose={() => {}}
+        onCancel={() => {}}
+      />
+    )
+    expect(luckRoot(container)).toBeNull()
+    const revealed = container.querySelectorAll('.wordle__tile--revealed')
+    expect(revealed.length).toBe(3)
+    const letters = [...revealed].map((el) => el.textContent)
+    // Positions 0, 2, 4 of "CIPHER" → C, P, E.
+    expect(letters).toEqual(['C', 'P', 'E'])
+  })
 })

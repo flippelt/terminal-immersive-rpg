@@ -20,11 +20,18 @@ import WordleLuckPopup from './WordleLuckPopup.jsx'
 // the per-path memory (see Terminal.jsx) so cancelling and re-opening the
 // same file doesn't refresh the offer. Pure cancels without ever
 // interacting with luck or the wordle do NOT consume the slot.
+//
+// The luck *effects* (burned rows from a bad roll, revealed letters from a
+// good one) are also persisted by the parent via the `initialLostByLuck` +
+// `initialRevealed` props. Without that, cancelling after a roll would
+// erase the punishment OR the reward when the player re-opened the file.
 export default function DecryptGame({
   target,
   attempts,
   label,
   luck = true,
+  initialLostByLuck = 0,
+  initialRevealed = [],
   t = makeT('en'),
   onWin,
   onLose,
@@ -48,22 +55,26 @@ export default function DecryptGame({
   // (rendered as a hint row above the grid). `lostByLuck` is the number of
   // attempts a bad roll burned — those slots render as struck-through
   // "phantom" rows at the top of the grid so the player sees what they cost.
+  // Both seed from the parent's stored values so a cancel+retry preserves
+  // the roll's outcome.
   const [luckUsed, setLuckUsed] = useState(!luck)
-  const [revealed, setRevealed] = useState(() => new Set())
-  const [lostByLuck, setLostByLuck] = useState(0)
+  const [revealed, setRevealed] = useState(() => new Set(initialRevealed))
+  const [lostByLuck, setLostByLuck] = useState(initialLostByLuck)
   const inputRef = useRef(null)
 
   // Notify the parent the very first time luck is consumed, so it can
   // remember (per file path) that re-opening the minigame later — after
-  // an Esc cancel, a lose, etc. — must NOT re-offer the roll. We pin the
-  // callback in a ref so the helper that triggers it doesn't have to take
-  // it as a dep.
+  // an Esc cancel, a lose, etc. — must NOT re-offer the roll AND must
+  // restore the roll's effect. The callback receives the resolved outcome
+  // ({ kind: 'lose', lostByLuck } or { kind: 'reveal', positions }) or no
+  // arg when luck was skipped by submitting a wordle guess. We pin it in a
+  // ref so the helper that triggers it doesn't have to take it as a dep.
   const onLuckConsumedRef = useRef(onLuckConsumed)
   onLuckConsumedRef.current = onLuckConsumed
-  const consumeLuck = () => {
+  const consumeLuck = (effect) => {
     if (luckUsed) return
     setLuckUsed(true)
-    onLuckConsumedRef.current?.()
+    onLuckConsumedRef.current?.(effect)
   }
 
   // Open the soft keyboard the moment the modal mounts. iOS only honors
@@ -118,30 +129,28 @@ export default function DecryptGame({
   // - "reveal": pick N distinct unrevealed positions and add them to the
   //   hint row. The player still has to type those letters in their guess —
   //   the reveal teaches them, it doesn't auto-fill.
+  // Both branches resolve to a concrete outcome and hand it to consumeLuck
+  // so the parent (Terminal) can persist it across remounts.
   const onLuckCommit = useCallback(
     (effect) => {
       if (effect.kind === 'lose') {
-        setLostByLuck((prev) => {
-          const total = prev + effect.n
-          if (rows.length + total >= tries) {
-            setDone(true)
-            setTimeout(() => onLose?.(), 800)
-          }
-          return total
-        })
+        const total = lostByLuck + effect.n
+        setLostByLuck(total)
+        if (rows.length + total >= tries) {
+          setDone(true)
+          setTimeout(() => onLose?.(), 800)
+        }
+        consumeLuck({ kind: 'lose', lostByLuck: total })
       } else if (effect.kind === 'reveal') {
-        setRevealed((prev) => {
-          const picks = pickRevealPositions(len, effect.n, prev)
-          if (picks.length === 0) return prev
-          const next = new Set(prev)
-          for (const p of picks) next.add(p)
-          return next
-        })
+        const picks = pickRevealPositions(len, effect.n, revealed)
+        const next = new Set(revealed)
+        for (const p of picks) next.add(p)
+        setRevealed(next)
+        consumeLuck({ kind: 'reveal', positions: [...next] })
       }
-      consumeLuck()
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [rows.length, tries, len, onLose]
+    [rows.length, tries, len, lostByLuck, revealed, onLose]
   )
 
   const remaining = tries - rows.length - lostByLuck

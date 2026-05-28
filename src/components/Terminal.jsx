@@ -103,6 +103,12 @@ export default function Terminal({
   // doesn't refresh the offer — that was the bug players hit by pressing
   // Esc and re-running `decrypt`. Cleared on reboot/scenario switch.
   const [luckUsedPaths, setLuckUsedPaths] = useState(() => new Set())
+  // Per-path RESULT of the luck roll: { lostByLuck, revealedPositions }.
+  // We need to remember the outcome (not just "luck was used") so that a
+  // cancel+retry restores the burned rows / revealed letters in the freshly
+  // mounted DecryptGame — otherwise the punishment (or reward) silently
+  // disappears when the component unmounts.
+  const [luckEffects, setLuckEffects] = useState(() => new Map())
   // path -> number of repeated scans; each burns one startAfter "grace".
   const scanReductionsRef = useRef(new Map())
   const scrollRef = useRef(null)
@@ -133,6 +139,7 @@ export default function Terminal({
     setHelpPopup(false)
     setFailurePopup(null)
     setLuckUsedPaths(new Set())
+    setLuckEffects(new Map())
     setDetonating(null)
     scanReductionsRef.current = new Map()
     decryptTargetsRef.current = new Map()
@@ -757,11 +764,29 @@ export default function Terminal({
             decryptGame.node.decryptLuck !== false &&
             !luckUsedPaths.has(decryptGame.path)
           }
-          onLuckConsumed={() => {
+          initialLostByLuck={luckEffects.get(decryptGame.path)?.lostByLuck ?? 0}
+          initialRevealed={luckEffects.get(decryptGame.path)?.revealedPositions ?? []}
+          onLuckConsumed={(effect) => {
             setLuckUsedPaths((s) => {
               if (s.has(decryptGame.path)) return s
               const next = new Set(s)
               next.add(decryptGame.path)
+              return next
+            })
+            // Skipping via a wordle guess leaves `effect` undefined — we
+            // only persist outcome data when the player actually rolled.
+            if (!effect) return
+            setLuckEffects((m) => {
+              const next = new Map(m)
+              const prev = next.get(decryptGame.path) ?? {
+                lostByLuck: 0,
+                revealedPositions: []
+              }
+              if (effect.kind === 'lose') {
+                next.set(decryptGame.path, { ...prev, lostByLuck: effect.lostByLuck })
+              } else if (effect.kind === 'reveal') {
+                next.set(decryptGame.path, { ...prev, revealedPositions: effect.positions })
+              }
               return next
             })
           }}
