@@ -120,4 +120,14 @@ describe('per-language content (i18n)', () => {
     })
     expect(pt.filesystem['/blackbox.dat'].content).toContain('OPERAÇÃO PHARMAKOS')
   })
+
+  it('localizes theme-level strings (extraHelp / unknownHint)', () => {
+    const en = composeTheme('ibm', null, 'en')
+    const pt = composeTheme('ibm', null, 'pt')
+    expect(en.unknownHint).toBe('Bad command or file name.')
+    expect(pt.unknownHint).toBe('Comando ou nome de arquivo incorreto.')
+    expect(pt.extraHelp[0]).toContain('versão do PC-DOS')
+    // the i18n block never leaks into the composed theme
+    expect(pt.i18n).toBeUndefined()
+  })
 })

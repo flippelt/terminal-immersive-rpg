@@ -14,10 +14,20 @@
   },
   "font": "'Terminal Grotesque Open'",
   "fontSize": "20px",
-  "crt": { "glow": "7px", "typeSpeed": 12 },
+  "crt": {
+    "glow": "7px",
+    "typeSpeed": 12
+  },
   "screensaver": "rain",
   "sounds": {
-    "whoosh": { "duration": 0.7, "freqStart": 110, "freqEnd": 1500, "tone": 0.5, "type": "triangle", "gain": 0.2 }
+    "whoosh": {
+      "duration": 0.7,
+      "freqStart": 110,
+      "freqEnd": 1500,
+      "tone": 0.5,
+      "type": "triangle",
+      "gain": 0.2
+    }
   },
   "locks": {
     "crackDefault": 5500,
@@ -27,15 +37,35 @@
   },
   "banner": "  _____ ____  ____  _____ ____\n | ____/ ___||  _ \\| ____|  _ \\\n |  _| \\___ \\| |_) |  _| | |_) |\n | |___ ___) |  __/| |___|  _ <\n |_____|____/|_|   |_____|_| \\_\\\n        TYRELL CORP. — MORE HUMAN THAN HUMAN",
   "boot": [
-    { "text": "[esper] photo analysis machine v3", "type": "muted" },
-    { "text": "tyrell corp. // off-world auth verified", "type": "ok" },
-    { "text": "los angeles, november 2019", "type": "muted" },
-    { "text": "" }
+    {
+      "text": "[esper] photo analysis machine v3",
+      "type": "muted"
+    },
+    {
+      "text": "tyrell corp. // off-world auth verified",
+      "type": "ok"
+    },
+    {
+      "text": "los angeles, november 2019",
+      "type": "muted"
+    },
+    {
+      "text": ""
+    }
   ],
   "extraHelp": [
     "  vk <name>             administer voight-kampff baseline",
     "  enhance <coord>       optical zoom on loaded plate"
   ],
   "unknownHint": "ESPER cannot interpret that input.",
-  "defaultScenario": "blade-runner-case"
+  "defaultScenario": "blade-runner-case",
+  "i18n": {
+    "pt": {
+      "extraHelp": [
+        "  vk <name>             aplica baseline voight-kampff",
+        "  enhance <coord>       zoom óptico na chapa carregada"
+      ],
+      "unknownHint": "ESPER não consegue interpretar essa entrada."
+    }
+  }
 }

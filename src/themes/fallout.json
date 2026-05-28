@@ -14,10 +14,20 @@
   },
   "font": "'Terminal Grotesque'",
   "fontSize": "20px",
-  "crt": { "glow": "12px", "typeSpeed": 18 },
+  "crt": {
+    "glow": "12px",
+    "typeSpeed": 18
+  },
   "screensaver": "bounce",
   "sounds": {
-    "whoosh": { "duration": 0.6, "freqStart": 320, "freqEnd": 1200, "tone": 0.55, "type": "triangle", "gain": 0.15 }
+    "whoosh": {
+      "duration": 0.6,
+      "freqStart": 320,
+      "freqEnd": 1200,
+      "tone": 0.55,
+      "type": "triangle",
+      "gain": 0.15
+    }
   },
   "locks": {
     "crackDefault": 7000,
@@ -27,11 +37,25 @@
   },
   "banner": "╔════════════════════════════════════════════╗\n║      ROBCO INDUSTRIES (TM)                 ║\n║      TERMLINK PROTOCOL v3.2.7              ║\n║      VAULT-TEC AUTHORIZED USE ONLY         ║\n╚════════════════════════════════════════════╝",
   "boot": [
-    { "text": "ROBCO INDUSTRIES (TM) TERMLINK PROTOCOL", "type": "muted" },
-    { "text": "ENTER PASSWORD NOW", "type": "muted" },
-    { "text": "1 ATTEMPT(S) LEFT: ████", "type": "ok" },
-    { "text": "" },
-    { "text": "Welcome to ROBCO Industries (TM) Termlink", "type": "ok" }
+    {
+      "text": "ROBCO INDUSTRIES (TM) TERMLINK PROTOCOL",
+      "type": "muted"
+    },
+    {
+      "text": "ENTER PASSWORD NOW",
+      "type": "muted"
+    },
+    {
+      "text": "1 ATTEMPT(S) LEFT: ████",
+      "type": "ok"
+    },
+    {
+      "text": ""
+    },
+    {
+      "text": "Welcome to ROBCO Industries (TM) Termlink",
+      "type": "ok"
+    }
   ],
   "extraHelp": [
     "  pipboy                quick status readout",
@@ -39,5 +63,15 @@
     "  holotape <name>       play a holotape"
   ],
   "unknownHint": "TERMLINK: command not recognized. type `help`.",
-  "defaultScenario": "vault-73"
+  "defaultScenario": "vault-73",
+  "i18n": {
+    "pt": {
+      "extraHelp": [
+        "  pipboy                leitura rápida de status",
+        "  rads                  nível de radiação atual",
+        "  holotape <name>       reproduz uma holotape"
+      ],
+      "unknownHint": "TERMLINK: comando não reconhecido. digite `help`."
+    }
+  }
 }

@@ -14,10 +14,20 @@
   },
   "font": "'Terminal Grotesque'",
   "fontSize": "20px",
-  "crt": { "glow": "10px", "typeSpeed": 16 },
+  "crt": {
+    "glow": "10px",
+    "typeSpeed": 16
+  },
   "screensaver": "static",
   "sounds": {
-    "whoosh": { "duration": 0.9, "freqStart": 70, "freqEnd": 640, "tone": 0.4, "type": "triangle", "gain": 0.2 }
+    "whoosh": {
+      "duration": 0.9,
+      "freqStart": 70,
+      "freqEnd": 640,
+      "tone": 0.4,
+      "type": "triangle",
+      "gain": 0.2
+    }
   },
   "locks": {
     "crackDefault": 8000,
@@ -27,16 +37,39 @@
   },
   "banner": "╔════════════════════════════════════════════╗\n║       ++ COGITATOR MK.IX ++                ║\n║       ++ MARTIAN PATTERN ++                ║\n║   ++ THE OMNISSIAH PROTECTS ALL ++         ║\n║       ++ ADEPTUS MECHANICUS ++             ║\n╚════════════════════════════════════════════╝",
   "boot": [
-    { "text": "++ INVOCATION OF MACHINE SPIRIT ++", "type": "muted" },
-    { "text": "++ litany of activation: spoken ++", "type": "muted" },
-    { "text": "++ sacred oils: applied ++", "type": "muted" },
-    { "text": "++ THE OMNISSIAH PROTECTS ++", "type": "ok" },
-    { "text": "" }
+    {
+      "text": "++ INVOCATION OF MACHINE SPIRIT ++",
+      "type": "muted"
+    },
+    {
+      "text": "++ litany of activation: spoken ++",
+      "type": "muted"
+    },
+    {
+      "text": "++ sacred oils: applied ++",
+      "type": "muted"
+    },
+    {
+      "text": "++ THE OMNISSIAH PROTECTS ++",
+      "type": "ok"
+    },
+    {
+      "text": ""
+    }
   ],
   "extraHelp": [
     "  litany <name>          recite sacred subroutine",
     "  bless <unit>           apply unction"
   ],
   "unknownHint": "++ THE MACHINE SPIRIT IS DISPLEASED ++",
-  "defaultScenario": "mechanicus-archive"
+  "defaultScenario": "mechanicus-archive",
+  "i18n": {
+    "pt": {
+      "extraHelp": [
+        "  litany <name>          recita sub-rotina sagrada",
+        "  bless <unit>           aplica a unção"
+      ],
+      "unknownHint": "++ O ESPÍRITO-MÁQUINA ESTÁ DESCONTENTE ++"
+    }
+  }
 }

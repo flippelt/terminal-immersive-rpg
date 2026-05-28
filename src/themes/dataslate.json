@@ -14,10 +14,20 @@
   },
   "font": "'3270 Nerd Font Mono'",
   "fontSize": "18px",
-  "crt": { "glow": "7px", "typeSpeed": 13 },
+  "crt": {
+    "glow": "7px",
+    "typeSpeed": 13
+  },
   "screensaver": "sweep",
   "sounds": {
-    "whoosh": { "duration": 0.6, "freqStart": 200, "freqEnd": 1500, "tone": 0.6, "type": "triangle", "gain": 0.18 }
+    "whoosh": {
+      "duration": 0.6,
+      "freqStart": 200,
+      "freqEnd": 1500,
+      "tone": 0.6,
+      "type": "triangle",
+      "gain": 0.18
+    }
   },
   "locks": {
     "crackDefault": 6000,
@@ -27,16 +37,39 @@
   },
   "banner": "╔══════════════════════════════════════════╗\n║   ++ IMPERIAL DATASLATE  MK.III ++       ║\n║   ++ DEPARTMENTO MUNITORUM ++            ║\n║   ++ FOR THE GOD-EMPEROR OF MANKIND ++   ║\n╚══════════════════════════════════════════╝",
   "boot": [
-    { "text": "++ slate spirit roused ++", "type": "muted" },
-    { "text": "++ aquila seal verified ++", "type": "muted" },
-    { "text": "++ ADEPTUS ADMINISTRATUM — CLEARANCE: ADEPT ++", "type": "ok" },
-    { "text": "++ THE EMPEROR PROTECTS ++", "type": "ok" },
-    { "text": "" }
+    {
+      "text": "++ slate spirit roused ++",
+      "type": "muted"
+    },
+    {
+      "text": "++ aquila seal verified ++",
+      "type": "muted"
+    },
+    {
+      "text": "++ ADEPTUS ADMINISTRATUM — CLEARANCE: ADEPT ++",
+      "type": "ok"
+    },
+    {
+      "text": "++ THE EMPEROR PROTECTS ++",
+      "type": "ok"
+    },
+    {
+      "text": ""
+    }
   ],
   "extraHelp": [
     "  aquila                recite the oath of loyalty",
     "  vox <unit>            open a vox-channel"
   ],
   "unknownHint": "++ INPUT NOT SANCTIONED. THE EMPEROR IS WATCHING. ++",
-  "defaultScenario": "vorlanis"
+  "defaultScenario": "vorlanis",
+  "i18n": {
+    "pt": {
+      "extraHelp": [
+        "  aquila                recita o juramento de lealdade",
+        "  vox <unit>            abre um canal de vox"
+      ],
+      "unknownHint": "++ ENTRADA NÃO SANCIONADA. O IMPERADOR ESTÁ OBSERVANDO. ++"
+    }
+  }
 }

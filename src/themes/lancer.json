@@ -14,10 +14,20 @@
   },
   "font": "'3270 Nerd Font Mono SemiCondensed'",
   "fontSize": "18px",
-  "crt": { "glow": "6px", "typeSpeed": 10 },
+  "crt": {
+    "glow": "6px",
+    "typeSpeed": 10
+  },
   "screensaver": "sweep",
   "sounds": {
-    "whoosh": { "duration": 0.5, "freqStart": 320, "freqEnd": 2100, "tone": 0.7, "type": "sine", "gain": 0.18 }
+    "whoosh": {
+      "duration": 0.5,
+      "freqStart": 320,
+      "freqEnd": 2100,
+      "tone": 0.7,
+      "type": "sine",
+      "gain": 0.18
+    }
   },
   "locks": {
     "crackDefault": 4500,
@@ -27,16 +37,39 @@
   },
   "banner": "  ____ ___  __  __ ____     ____ ___  _   _\n / ___/ _ \\|  \\/  |  _ \\   / ___/ _ \\| \\ | |\n| |  | | | | |\\/| | |_) | | |  | | | |  \\| |\n| |__| |_| | |  | |  __/  | |__| |_| | |\\  |\n \\____\\___/|_|  |_|_|      \\____\\___/|_| \\_|\n   COMPANION / CONSCIENCE — pilot interface",
   "boot": [
-    { "text": "[ COMP/CON v4.2.7 ]", "type": "ok" },
-    { "text": "establishing OMNINET handshake...", "type": "muted" },
-    { "text": "handshake OK. mnesis chamber synced.", "type": "muted" },
-    { "text": "good to see you again, pilot.", "type": "ok" },
-    { "text": "" }
+    {
+      "text": "[ COMP/CON v4.2.7 ]",
+      "type": "ok"
+    },
+    {
+      "text": "establishing OMNINET handshake...",
+      "type": "muted"
+    },
+    {
+      "text": "handshake OK. mnesis chamber synced.",
+      "type": "muted"
+    },
+    {
+      "text": "good to see you again, pilot.",
+      "type": "ok"
+    },
+    {
+      "text": ""
+    }
   ],
   "extraHelp": [
     "  status                 mech telemetry",
     "  hail <callsign>        open OMNINET channel"
   ],
   "unknownHint": "COMP/CON can't parse that. try `help`, pilot.",
-  "defaultScenario": "horizon-lance"
+  "defaultScenario": "horizon-lance",
+  "i18n": {
+    "pt": {
+      "extraHelp": [
+        "  status                 telemetria do mech",
+        "  hail <callsign>        abre canal OMNINET"
+      ],
+      "unknownHint": "COMP/CON não consegue interpretar isso. tente `help`, piloto."
+    }
+  }
 }

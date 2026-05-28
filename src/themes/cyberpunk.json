@@ -14,12 +14,31 @@
   },
   "font": "'3270 Nerd Font Mono SemiCondensed'",
   "fontSize": "18px",
-  "crt": { "glow": "10px", "typeSpeed": 8 },
+  "crt": {
+    "glow": "10px",
+    "typeSpeed": 8
+  },
   "screensaver": "starfield",
   "sounds": {
-    "keystroke": { "cutoff": 3200, "duration": 0.014, "gain": 0.07, "thump": 0.2 },
-    "beep": { "freq": 1320, "duration": 0.08, "type": "sawtooth", "gain": 0.18 },
-    "whoosh": { "duration": 0.5, "freqStart": 200, "freqEnd": 2400, "gain": 0.22, "tone": 0 }
+    "keystroke": {
+      "cutoff": 3200,
+      "duration": 0.014,
+      "gain": 0.07,
+      "thump": 0.2
+    },
+    "beep": {
+      "freq": 1320,
+      "duration": 0.08,
+      "type": "sawtooth",
+      "gain": 0.18
+    },
+    "whoosh": {
+      "duration": 0.5,
+      "freqStart": 200,
+      "freqEnd": 2400,
+      "gain": 0.22,
+      "tone": 0
+    }
   },
   "locks": {
     "crackDefault": 4000,
@@ -29,11 +48,25 @@
   },
   "banner": "┌────────────────────────────────────────────┐\n│  >>> NETWATCH FEDERAL SURVEILLANCE NET     │\n│  >>> CLEARANCE: AGENT  //  CASE: 4127-A    │\n│  >>> AUTH: BLACK ICE DEPLOYMENT NETWORK    │\n└────────────────────────────────────────────┘",
   "boot": [
-    { "text": ">>> netwatch handshake...", "type": "muted" },
-    { "text": ">>> federal cert verified: ████████ valid", "type": "ok" },
-    { "text": ">>> agent badge: NW-2087", "type": "muted" },
-    { "text": ">>> the net does not forget. neither do we.", "type": "ok" },
-    { "text": "" }
+    {
+      "text": ">>> netwatch handshake...",
+      "type": "muted"
+    },
+    {
+      "text": ">>> federal cert verified: ████████ valid",
+      "type": "ok"
+    },
+    {
+      "text": ">>> agent badge: NW-2087",
+      "type": "muted"
+    },
+    {
+      "text": ">>> the net does not forget. neither do we.",
+      "type": "ok"
+    },
+    {
+      "text": ""
+    }
   ],
   "extraHelp": [
     "  trace <handle>        run IP trace on a netrunner",
@@ -41,5 +74,15 @@
     "  architecture          show net architecture map"
   ],
   "unknownHint": "NETWATCH: unrecognized syscall. type `help`.",
-  "defaultScenario": "heimdall"
+  "defaultScenario": "heimdall",
+  "i18n": {
+    "pt": {
+      "extraHelp": [
+        "  trace <handle>        rastreia o IP de um netrunner",
+        "  deploy <ice>          implanta programa de ICE Negro",
+        "  architecture          mostra o mapa da arquitetura da rede"
+      ],
+      "unknownHint": "NETWATCH: syscall não reconhecida. digite `help`."
+    }
+  }
 }

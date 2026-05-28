@@ -14,10 +14,20 @@
   },
   "font": "'3270 Nerd Font Mono'",
   "fontSize": "18px",
-  "crt": { "glow": "9px", "typeSpeed": 11 },
+  "crt": {
+    "glow": "9px",
+    "typeSpeed": 11
+  },
   "screensaver": "matrix",
   "sounds": {
-    "whoosh": { "duration": 0.5, "freqStart": 180, "freqEnd": 1300, "tone": 0.5, "type": "triangle", "gain": 0.16 }
+    "whoosh": {
+      "duration": 0.5,
+      "freqStart": 180,
+      "freqEnd": 1300,
+      "tone": 0.5,
+      "type": "triangle",
+      "gain": 0.16
+    }
   },
   "locks": {
     "crackDefault": 5000,
@@ -27,16 +37,39 @@
   },
   "banner": "┌────────────────────────────────────────────┐\n│  IBM Personal Computer                      │\n│  PC-DOS  Version 3.30                        │\n│  (C) Copyright IBM Corp 1981, 1987           │\n└────────────────────────────────────────────┘",
   "boot": [
-    { "text": "POST...", "type": "muted" },
-    { "text": "640K RAM  ........  OK", "type": "muted" },
-    { "text": "FIXED DISK 0  ....  OK", "type": "muted" },
-    { "text": "Starting PC-DOS...", "type": "ok" },
-    { "text": "" }
+    {
+      "text": "POST...",
+      "type": "muted"
+    },
+    {
+      "text": "640K RAM  ........  OK",
+      "type": "muted"
+    },
+    {
+      "text": "FIXED DISK 0  ....  OK",
+      "type": "muted"
+    },
+    {
+      "text": "Starting PC-DOS...",
+      "type": "ok"
+    },
+    {
+      "text": ""
+    }
   ],
   "extraHelp": [
     "  ver                   PC-DOS version",
     "  mem                   memory map"
   ],
   "unknownHint": "Bad command or file name.",
-  "defaultScenario": "workstation"
+  "defaultScenario": "workstation",
+  "i18n": {
+    "pt": {
+      "extraHelp": [
+        "  ver                   versão do PC-DOS",
+        "  mem                   mapa de memória"
+      ],
+      "unknownHint": "Comando ou nome de arquivo incorreto."
+    }
+  }
 }

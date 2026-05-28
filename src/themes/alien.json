@@ -14,10 +14,20 @@
   },
   "font": "'3270 Nerd Font Mono'",
   "fontSize": "18px",
-  "crt": { "glow": "8px", "typeSpeed": 14 },
+  "crt": {
+    "glow": "8px",
+    "typeSpeed": 14
+  },
   "screensaver": "starfield",
   "sounds": {
-    "whoosh": { "duration": 0.85, "freqStart": 60, "freqEnd": 950, "tone": 0.45, "type": "sawtooth", "gain": 0.2 }
+    "whoosh": {
+      "duration": 0.85,
+      "freqStart": 60,
+      "freqEnd": 950,
+      "tone": 0.45,
+      "type": "sawtooth",
+      "gain": 0.2
+    }
   },
   "locks": {
     "crackDefault": 6000,
@@ -27,15 +37,35 @@
   },
   "banner": "  __  __   ___    _____   _   _   _____   ____  \n|  \\/  |  / _ \\  |_   _| | | | | | ____| |  _ \\ \n| |\\/| | | | | |   | |   | |_| | |  _|   | |_) |\n| |  | | | |_| |   | |   |  _  | | |___  |  _ < \n|_|  |_|  \\___/    |_|   |_| |_| |_____| |_| \\_\\\n         WEYLAND-YUTANI MAINFRAME 6000",
   "boot": [
-    { "text": "POST...", "type": "muted" },
-    { "text": "MU/TH/UR 6000 // SYSTEM ONLINE", "type": "ok" },
-    { "text": "INTERFACE 2037 READY", "type": "muted" },
-    { "text": "" }
+    {
+      "text": "POST...",
+      "type": "muted"
+    },
+    {
+      "text": "MU/TH/UR 6000 // SYSTEM ONLINE",
+      "type": "ok"
+    },
+    {
+      "text": "INTERFACE 2037 READY",
+      "type": "muted"
+    },
+    {
+      "text": ""
+    }
   ],
   "extraHelp": [
     "  query <subject>       interrogate database",
     "  override <code>       privileged interface"
   ],
   "unknownHint": "MU/TH/UR does not recognize that directive.",
-  "defaultScenario": "nostromo"
+  "defaultScenario": "nostromo",
+  "i18n": {
+    "pt": {
+      "extraHelp": [
+        "  query <subject>       interroga o banco de dados",
+        "  override <code>       interface privilegiada"
+      ],
+      "unknownHint": "MU/TH/UR não reconhece essa diretiva."
+    }
+  }
 }
