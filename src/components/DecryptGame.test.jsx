@@ -207,6 +207,33 @@ describe('DecryptGame luck popup integration', () => {
     }
   })
 
+  it('fires onLuckConsumed after a critical-fail roll (lose path)', () => {
+    // User-reported regression: after a roll of 1 (lose 2 attempts) the
+    // path wasn't being added to luckUsedPaths, so re-opening the same
+    // file re-showed the popup. Verifies the lose branch in onLuckCommit
+    // still calls consumeLuck.
+    vi.useFakeTimers()
+    try {
+      const onLuckConsumed = vi.fn()
+      const { container } = render(
+        <DecryptGame
+          target="CIPHER"
+          attempts={6}
+          onLuckConsumed={onLuckConsumed}
+          onWin={() => {}}
+          onLose={() => {}}
+          onCancel={() => {}}
+        />
+      )
+      fireEvent.change(luckInput(container), { target: { value: '1' } })
+      fireEvent.keyDown(luckInput(container), { key: 'Enter' })
+      act(() => vi.advanceTimersByTime(1800))
+      expect(onLuckConsumed).toHaveBeenCalledTimes(1)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('fires onLuckConsumed once when the player skips luck via a wordle guess', () => {
     const onLuckConsumed = vi.fn()
     const { container } = render(
