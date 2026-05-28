@@ -190,4 +190,61 @@ describe('DecryptGame luck popup integration', () => {
     expect(luckRoot(container)).toBeNull()
     expect(document.activeElement).toBe(capture(container))
   })
+
+  it('fires onLuckConsumed once when the player rolls', () => {
+    vi.useFakeTimers()
+    try {
+      const onLuckConsumed = vi.fn()
+      const { container } = render(
+        <DecryptGame target="CIPHER" onLuckConsumed={onLuckConsumed} onWin={() => {}} onLose={() => {}} onCancel={() => {}} />
+      )
+      fireEvent.change(luckInput(container), { target: { value: '10' } })
+      fireEvent.keyDown(luckInput(container), { key: 'Enter' })
+      act(() => vi.advanceTimersByTime(1800))
+      expect(onLuckConsumed).toHaveBeenCalledTimes(1)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('fires onLuckConsumed once when the player skips luck via a wordle guess', () => {
+    const onLuckConsumed = vi.fn()
+    const { container } = render(
+      <DecryptGame target="CIPHER" onLuckConsumed={onLuckConsumed} onWin={() => {}} onLose={() => {}} onCancel={() => {}} />
+    )
+    fireEvent.change(capture(container), { target: { value: 'WRONGW' } })
+    fireEvent.keyDown(capture(container), { key: 'Enter' })
+    expect(onLuckConsumed).toHaveBeenCalledTimes(1)
+    // A second guess must not re-fire the callback — luck is consumed only once.
+    fireEvent.change(capture(container), { target: { value: 'AGAINX' } })
+    fireEvent.keyDown(capture(container), { key: 'Enter' })
+    expect(onLuckConsumed).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not fire onLuckConsumed when the player just cancels (Esc) without interacting', () => {
+    const onLuckConsumed = vi.fn()
+    const onCancel = vi.fn()
+    const { container } = render(
+      <DecryptGame target="CIPHER" onLuckConsumed={onLuckConsumed} onWin={() => {}} onLose={() => {}} onCancel={onCancel} />
+    )
+    // Esc on the wordle's hidden capture cancels the game; luck remains
+    // available for the next time the player opens this file.
+    fireEvent.keyDown(capture(container), { key: 'Escape' })
+    expect(onCancel).toHaveBeenCalledTimes(1)
+    expect(onLuckConsumed).not.toHaveBeenCalled()
+  })
+
+  it('respects luck={false} (Terminal already saw this file consume luck)', () => {
+    // Simulates a re-mount after the parent remembered luck was consumed.
+    const onLuckConsumed = vi.fn()
+    const { container } = render(
+      <DecryptGame target="CIPHER" luck={false} onLuckConsumed={onLuckConsumed} onWin={() => {}} onLose={() => {}} onCancel={() => {}} />
+    )
+    expect(luckRoot(container)).toBeNull()
+    // Subsequent guesses must not re-fire the callback either — the parent
+    // already knows luck is spent for this path.
+    fireEvent.change(capture(container), { target: { value: 'WRONGW' } })
+    fireEvent.keyDown(capture(container), { key: 'Enter' })
+    expect(onLuckConsumed).not.toHaveBeenCalled()
+  })
 })

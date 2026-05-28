@@ -16,7 +16,10 @@ import WordleLuckPopup from './WordleLuckPopup.jsx'
 // the wordle: a one-shot d20 the player may roll for a chance at lost
 // attempts or revealed letters. Rolling commits the effect and dismisses
 // the popup; making any wordle guess also dismisses it without using the
-// roll. The luck popup can only be used once per minigame.
+// roll. The luck popup can only be used once per file — the parent owns
+// the per-path memory (see Terminal.jsx) so cancelling and re-opening the
+// same file doesn't refresh the offer. Pure cancels without ever
+// interacting with luck or the wordle do NOT consume the slot.
 export default function DecryptGame({
   target,
   attempts,
@@ -25,7 +28,8 @@ export default function DecryptGame({
   t = makeT('en'),
   onWin,
   onLose,
-  onCancel
+  onCancel,
+  onLuckConsumed
 }) {
   const word = String(target).toUpperCase()
   const len = word.length
@@ -49,6 +53,19 @@ export default function DecryptGame({
   const [lostByLuck, setLostByLuck] = useState(0)
   const inputRef = useRef(null)
 
+  // Notify the parent the very first time luck is consumed, so it can
+  // remember (per file path) that re-opening the minigame later — after
+  // an Esc cancel, a lose, etc. — must NOT re-offer the roll. We pin the
+  // callback in a ref so the helper that triggers it doesn't have to take
+  // it as a dep.
+  const onLuckConsumedRef = useRef(onLuckConsumed)
+  onLuckConsumedRef.current = onLuckConsumed
+  const consumeLuck = () => {
+    if (luckUsed) return
+    setLuckUsed(true)
+    onLuckConsumedRef.current?.()
+  }
+
   // Open the soft keyboard the moment the modal mounts. iOS only honors
   // programmatic focus inside an active user gesture (the keystroke that ran
   // `decrypt`), so this runs synchronously in mount. While the luck popup
@@ -62,7 +79,7 @@ export default function DecryptGame({
   const submit = () => {
     if (done || cur.length !== len) return
     // First guess implicitly ends the luck offer, even without rolling.
-    if (!luckUsed) setLuckUsed(true)
+    consumeLuck()
     const score = scoreGuess(cur, word)
     const next = [...rows, { letters: cur.split(''), score }]
     setRows(next)
@@ -121,8 +138,9 @@ export default function DecryptGame({
           return next
         })
       }
-      setLuckUsed(true)
+      consumeLuck()
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [rows.length, tries, len, onLose]
   )
 

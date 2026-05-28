@@ -97,6 +97,12 @@ export default function Terminal({
   // simultaneously losing tracer seconds.
   const [failurePopup, setFailurePopup] = useState(null)
   const [detonating, setDetonating] = useState(null) // selfDestruct config
+  // Paths whose decrypt-minigame luck slot has been consumed (the player
+  // either rolled or made a wordle guess that auto-skipped the roll). Lives
+  // here, not in DecryptGame, so cancelling and re-opening the same file
+  // doesn't refresh the offer — that was the bug players hit by pressing
+  // Esc and re-running `decrypt`. Cleared on reboot/scenario switch.
+  const [luckUsedPaths, setLuckUsedPaths] = useState(() => new Set())
   // path -> number of repeated scans; each burns one startAfter "grace".
   const scanReductionsRef = useRef(new Map())
   const scrollRef = useRef(null)
@@ -126,6 +132,7 @@ export default function Terminal({
     setFileViewer(null)
     setHelpPopup(false)
     setFailurePopup(null)
+    setLuckUsedPaths(new Set())
     setDetonating(null)
     scanReductionsRef.current = new Map()
     decryptTargetsRef.current = new Map()
@@ -746,7 +753,18 @@ export default function Terminal({
           target={decryptGame.target ?? decryptGame.node.decryptTarget}
           attempts={decryptGame.node.decryptAttempts}
           label={decryptGame.node.decryptLabel}
-          luck={decryptGame.node.decryptLuck !== false}
+          luck={
+            decryptGame.node.decryptLuck !== false &&
+            !luckUsedPaths.has(decryptGame.path)
+          }
+          onLuckConsumed={() => {
+            setLuckUsedPaths((s) => {
+              if (s.has(decryptGame.path)) return s
+              const next = new Set(s)
+              next.add(decryptGame.path)
+              return next
+            })
+          }}
           t={tRef.current}
           onWin={handleDecryptWin}
           onLose={handleDecryptLose}
