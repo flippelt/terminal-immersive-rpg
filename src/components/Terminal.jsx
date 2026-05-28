@@ -746,6 +746,7 @@ export default function Terminal({
           target={decryptGame.target ?? decryptGame.node.decryptTarget}
           attempts={decryptGame.node.decryptAttempts}
           label={decryptGame.node.decryptLabel}
+          luck={decryptGame.node.decryptLuck !== false}
           t={tRef.current}
           onWin={handleDecryptWin}
           onLose={handleDecryptLose}
