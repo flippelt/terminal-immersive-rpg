@@ -24,9 +24,13 @@ browser (no assets); fonts are self-hosted (no Google Fonts).
   vignette. Honors `prefers-reduced-motion`.
 - **Hybrid terminal** — typewriter boot animation + an interactive prompt with
   an inline cursor that follows typing and the ←/→ keys.
-- **Locked files** — `crack` (animated brute force) and `decrypt` (cinematic
-  password dialog) with a configurable progress bar, optional difficulty roll,
-  and unlock chains.
+- **Bilingual (EN / PT-BR)** — UI and scenarios in English and Portuguese;
+  switch from the bottom-left control. **Commands never change** language.
+  Authors can translate their own scenarios (see CONTRIBUTING).
+- **Locked files** — `crack` (animated brute force), `decrypt` (Wordle-style
+  cipher minigame) and `unlock` (known password), with a configurable progress
+  bar, optional difficulty roll, and unlock chains. Reading a file (`cat`) opens
+  a **cinematic, scrollable popup**.
 - **GM cinematics** — unlock events, a self-destruct popup with OVERRIDE, and a
   Cyberpunk-style tracer.
 - **GM mode** (hidden) — reveals passwords and locked content without unlocking

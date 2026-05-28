@@ -24,9 +24,13 @@ navegador (sem assets), fontes self-hosted (sem Google Fonts).
   vinheta. Respeita `prefers-reduced-motion`.
 - **Terminal híbrido** — boot animado por typewriter + prompt interativo com
   cursor inline que segue a digitação e as setas ←/→.
-- **Arquivos trancados** — `crack` (força bruta animada) e `decrypt` (modal
-  cinematográfico de senha) com barra de progresso configurável, teste de
-  dificuldade opcional e cadeias de desbloqueio.
+- **Bilíngue (EN / PT-BR)** — interface e cenários em inglês e português;
+  alterne pelo controle no canto inferior esquerdo. Os **comandos não mudam** de
+  idioma. Autores podem traduzir seus próprios cenários (veja o CONTRIBUTING).
+- **Arquivos trancados** — `crack` (força bruta animada), `decrypt` (minigame de
+  cifra estilo Wordle) e `unlock` (senha conhecida), com barra de progresso
+  configurável, teste de dificuldade opcional e cadeias de desbloqueio. Ler um
+  arquivo (`cat`) abre um **popup cinematográfico** com rolagem.
 - **Cinematografia do Mestre** — eventos ao destrancar, popup de autodestruição
   com OVERRIDE e o rastreador estilo Cyberpunk.
 - **Modo Mestre** (escondido) — revela senhas e conteúdo trancado sem destrancar
