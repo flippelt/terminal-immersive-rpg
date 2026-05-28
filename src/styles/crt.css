@@ -998,6 +998,215 @@
   color: var(--accent);
 }
 
+/* === Help popup (cheat sheet) === */
+/* Desktop: non-modal floating window. The CRT prompt stays interactive while
+   the popup is open; the player can keep typing commands behind it. Movable
+   by the header, resizable from the bottom-right corner. On mobile we drop
+   into a fixed centered modal (drag + resize don't fit a phone screen). */
+.help-popup {
+  position: absolute;
+  z-index: 11;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--fg);
+  box-shadow:
+    0 0 24px color-mix(in srgb, var(--fg) 35%, transparent),
+    inset 0 0 60px color-mix(in srgb, var(--fg) 6%, transparent);
+  text-shadow: 0 0 4px currentColor;
+  min-width: 340px;
+  min-height: 220px;
+  animation: modal-in 0.18s ease-out;
+}
+.help-popup__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--fg) 40%, transparent);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--accent, #88ff88);
+  font-size: 0.9em;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+.help-popup__header:active { cursor: grabbing; }
+.help-popup__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.help-popup__close {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid var(--muted, #1a661a);
+  color: var(--fg);
+  font: inherit;
+  line-height: 1;
+  padding: 2px 9px;
+  cursor: pointer;
+  text-shadow: inherit;
+}
+.help-popup__close:hover,
+.help-popup__close:focus-visible {
+  border-color: var(--fg);
+  background: color-mix(in srgb, var(--fg) 14%, transparent);
+  outline: none;
+}
+.help-popup__body {
+  overflow-y: auto;
+  flex: 1;
+  padding: 12px 16px;
+  font-size: 0.92em;
+  line-height: 1.45;
+}
+.help-popup__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  padding: 2px 0;
+}
+.help-popup__cmd {
+  color: var(--accent, #88ff88);
+  font-weight: bold;
+  min-width: 8.5em;
+}
+.help-popup__desc {
+  color: var(--fg);
+  flex: 1 1 14em;
+}
+.help-popup__aliases {
+  color: var(--muted, #1a661a);
+  font-style: italic;
+  flex-basis: 100%;
+  padding-left: 9em;
+  font-size: 0.85em;
+}
+.help-popup__section {
+  margin: 8px 0 6px;
+  color: var(--muted, #1a661a);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 0.78em;
+}
+.help-popup__extra {
+  color: var(--muted, #1a661a);
+  padding: 2px 0;
+}
+.help-popup__footer {
+  padding: 8px 14px;
+  border-top: 1px solid color-mix(in srgb, var(--fg) 20%, transparent);
+  font-size: 0.74em;
+  color: var(--muted, #1a661a);
+  letter-spacing: 1px;
+}
+.help-popup__resize {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 18px;
+  height: 18px;
+  cursor: nwse-resize;
+  background:
+    linear-gradient(135deg, transparent 0 8px, var(--muted, #1a661a) 8px 10px, transparent 10px 14px, var(--muted, #1a661a) 14px 16px, transparent 16px);
+  opacity: 0.6;
+  touch-action: none;
+}
+.help-popup__resize:hover { opacity: 1; }
+
+/* Mobile: become a centered modal with backdrop; no drag, no resize. */
+.help-popup--mobile-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 11;
+  background: color-mix(in srgb, var(--bg, #000) 70%, transparent);
+  animation: overlay-in 0.15s ease-out;
+}
+.help-popup--mobile {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% - 24px);
+  max-height: 80%;
+  min-width: 0;
+  min-height: 0;
+}
+.help-popup--mobile .help-popup__header { cursor: default; }
+.help-popup--mobile .help-popup__resize { display: none; }
+
+/* === Failure popup (crack / unlock / decrypt error ack) === */
+/* Modal: blocks input until acknowledged. While open, deferred side-effects
+   (tracer time penalty, history line push) wait — only on close do they run.
+   The "wait" is what lets the player read the message before the screen
+   reacts. */
+.failure-popup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: min(420px, 92vw);
+  max-width: 86%;
+}
+.failure-popup .modal__header {
+  color: var(--error, #ff3b3b);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.failure-popup__msg {
+  color: var(--error, #ff3b3b);
+  font-size: 1.05em;
+  margin: 4px 0 6px;
+  text-shadow: 0 0 10px currentColor;
+}
+.failure-popup__hint {
+  color: var(--muted, #1a661a);
+  font-size: 0.9em;
+}
+.failure-popup__close {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid var(--muted, #1a661a);
+  color: var(--fg);
+  font: inherit;
+  line-height: 1;
+  padding: 2px 9px;
+  cursor: pointer;
+  text-shadow: inherit;
+}
+.failure-popup__close:hover,
+.failure-popup__close:focus-visible {
+  border-color: var(--fg);
+  background: color-mix(in srgb, var(--fg) 14%, transparent);
+  outline: none;
+}
+.failure-popup__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+.failure-popup__ok {
+  background: transparent;
+  border: 1px solid var(--fg);
+  color: var(--fg);
+  padding: 4px 14px;
+  font: inherit;
+  cursor: pointer;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-shadow: inherit;
+}
+.failure-popup__ok:hover,
+.failure-popup__ok:focus-visible {
+  background: color-mix(in srgb, var(--fg) 14%, transparent);
+  outline: none;
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .crt::after,

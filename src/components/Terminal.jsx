@@ -11,6 +11,8 @@ import DecryptGame from './DecryptGame.jsx'
 import DecryptSuccess from './DecryptSuccess.jsx'
 import FileViewer from './FileViewer.jsx'
 import Detonation from './Detonation.jsx'
+import HelpPopup from './HelpPopup.jsx'
+import FailurePopup from './FailurePopup.jsx'
 
 const toLines = (val, type) =>
   (Array.isArray(val) ? val : [val])
@@ -88,6 +90,12 @@ export default function Terminal({
   const [decryptProgress, setDecryptProgress] = useState(null) // { path, node, label, duration }
   const [decryptSuccess, setDecryptSuccess] = useState(null) // { path, node, key }
   const [fileViewer, setFileViewer] = useState(null) // { path, node }
+  const [helpPopup, setHelpPopup] = useState(false)
+  // { title?, message, hint?, onClose } — onClose runs the side effects that
+  // were deferred while the popup was up (tracer time penalty, history-line
+  // push). Designed so the player can read the failure message without
+  // simultaneously losing tracer seconds.
+  const [failurePopup, setFailurePopup] = useState(null)
   const [detonating, setDetonating] = useState(null) // selfDestruct config
   // path -> number of repeated scans; each burns one startAfter "grace".
   const scanReductionsRef = useRef(new Map())
@@ -116,6 +124,8 @@ export default function Terminal({
     setDecryptProgress(null)
     setDecryptSuccess(null)
     setFileViewer(null)
+    setHelpPopup(false)
+    setFailurePopup(null)
     setDetonating(null)
     scanReductionsRef.current = new Map()
     decryptTargetsRef.current = new Map()
@@ -295,6 +305,13 @@ export default function Terminal({
   // normal unlock sequence (progress + reveal chain + events).
   const openFileViewer = useCallback((path, node) => setFileViewer({ path, node }), [])
 
+  // Show a failure popup. Any work that should wait for the player's
+  // acknowledgement (tracer time penalty, history record push, etc.) belongs
+  // in `onClose` — it runs only after they dismiss the popup.
+  const showFailure = useCallback((opts) => {
+    setFailurePopup(opts)
+  }, [])
+
   // Won the cipher minigame: recover the key + evade the tracer and unlock
   // the file now (so it's readable the instant the viewer opens). The screen
   // sequence is: decrypt progress bar (%) -> ACCESS GRANTED + key auto-type
@@ -344,11 +361,17 @@ export default function Terminal({
 
   const handleDecryptLose = useCallback(() => {
     setDecryptGame(null)
-    push([
-      { text: tRef.current('decrypt.failed'), type: 'err' },
-      { text: tRef.current('decrypt.failed.hint'), type: 'muted' },
-      { text: '', instant: true }
-    ])
+    const message = tRef.current('decrypt.failed')
+    const hint = tRef.current('decrypt.failed.hint')
+    setFailurePopup({
+      message,
+      hint,
+      onClose: () => push([
+        { text: message, type: 'err' },
+        { text: hint, type: 'muted' },
+        { text: '', instant: true }
+      ])
+    })
   }, [push])
 
   const handleDecryptCancel = useCallback(() => {
@@ -426,13 +449,42 @@ export default function Terminal({
     setTracerTotal((prev) => (prev == null ? s : Math.min(prev, s)))
   }, [])
 
+  // Common interception for command output that contains a failure directive.
+  // Side effects in the directive (history lines, tracer trip) run from the
+  // popup's onClose so they happen only after the player dismisses it.
+  const showFailureFromDirective = useCallback((directive) => {
+    showFailure({
+      title: directive.title,
+      message: directive.message,
+      hint: directive.hint,
+      onClose: () => {
+        if (directive.historyLines?.length) {
+          push([...directive.historyLines, { text: '', instant: true }])
+        }
+        if (directive.tracerTrip) {
+          tripTracer(directive.tracerTrip.seconds)
+        }
+      }
+    })
+  }, [push, showFailure, tripTracer])
+
   const handleModalSubmit = useCallback(
     (value) => {
       if (!modal) return
       const { kind, path, node } = modal
       setModal(null)
       if (kind === 'decrypt') {
-        const lines = buildDecryptLines(theme, path, node, value, unlock, theme.filesystem, tRef.current)
+        // On unlock success, also reveal the file in the cat popup so the
+        // player sees what they just unlocked without having to type `cat`.
+        const onUnlock = (p) => { unlock(p); openFileViewer(p, node) }
+        const lines = buildDecryptLines(theme, path, node, value, onUnlock, theme.filesystem, tRef.current)
+        // Wrong key surfaces as a quick failure popup (history lines + any
+        // side effects run on dismissal, not while the player is reading it).
+        const fail = lines.find((l) => l.type === 'failure')
+        if (fail) {
+          showFailureFromDirective(fail)
+          return
+        }
         // Getting in cleanly (correct key) on a watched file also evades the
         // tracer — you're in before the trace finishes.
         const tr = themeRef.current.tracer
@@ -472,26 +524,34 @@ export default function Terminal({
       const dcNote = gmMode ? ` (DC ${dc})` : ''
       if (roll > dc) {
         // Cracking it in time beats the trace: stop the tracer (with an
-        // optional GM-defined "evaded" line).
+        // optional GM-defined "evaded" line). Also open the cat popup so
+        // the player can read the file they just cracked.
         const tr = themeRef.current.tracer
         const tracerWasOn = !!tr && node.tracer && tracerEndsAt != null
         if (tracerWasOn) setTracerEndsAt(null)
+        const onUnlock = (p) => { unlock(p); openFileViewer(p, node) }
         push([
           { text: tRef.current('roll.success', { roll, dc: dcNote }), type: 'ok' },
           ...(tracerWasOn && tr.evaded ? [{ text: tr.evaded, type: 'ok' }] : []),
-          ...buildCrackLines(theme, path, node, unlock, theme.filesystem, tRef.current),
+          ...buildCrackLines(theme, path, node, onUnlock, theme.filesystem, tRef.current),
           { text: '', instant: true }
         ])
         return
       }
+      // Failed roll. Increment counters immediately (no visual side effect),
+      // then show the failure popup. The tracer time penalty and the
+      // history-line record are both deferred to popup close so the player
+      // can read the message without simultaneously losing trace seconds.
       const used = (crackAttempts.get(path) ?? 0) + 1
       setCrackAttempts((m) => new Map(m).set(path, used))
-      // Tracer — only for files that opt in (`tracer: true`):
-      //  • if not yet active, arm it once failed attempts reach the GM's
-      //    grace `startAfter` (>= 1; startAfter 0 already armed at command);
-      //  • if active, each failed attempt drags it earlier by `penalty`.
+      const remaining = max - used
+      const failedMsg = tRef.current('roll.failed', { roll, dc: dcNote })
+      const hintMsg = remaining > 0
+        ? tRef.current('crack.attemptsleft', { n: remaining })
+        : tRef.current('crack.lockedout2')
       const tr = themeRef.current.tracer
-      if (tr && node.tracer) {
+      const applyTracerPenalty = () => {
+        if (!tr || !node.tracer) return
         const eff = effTracer(tr, node, scanReductionsRef.current.get(path) ?? 0)
         setTracerEndsAt((prev) => {
           if (prev == null) {
@@ -504,17 +564,20 @@ export default function Terminal({
           return prev - eff.penalty * 1000
         })
       }
-      const remaining = max - used
-      const lines = [{ text: tRef.current('roll.failed', { roll, dc: dcNote }), type: 'err' }]
-      lines.push(
-        remaining > 0
-          ? { text: tRef.current('crack.attemptsleft', { n: remaining }), type: 'muted' }
-          : { text: tRef.current('crack.lockedout2'), type: 'err' }
-      )
-      lines.push({ text: '', instant: true })
-      push(lines)
+      showFailure({
+        message: failedMsg,
+        hint: hintMsg,
+        onClose: () => {
+          applyTracerPenalty()
+          push([
+            { text: failedMsg, type: 'err' },
+            { text: hintMsg, type: remaining > 0 ? 'muted' : 'err' },
+            { text: '', instant: true }
+          ])
+        }
+      })
     },
-    [modal, push, theme, unlock, gmMode, crackAttempts, tracerEndsAt, unlocked]
+    [modal, push, theme, unlock, gmMode, crackAttempts, tracerEndsAt, unlocked, openFileViewer, showFailure, showFailureFromDirective]
   )
 
   const handleModalCancel = useCallback(() => {
@@ -566,15 +629,26 @@ export default function Terminal({
         shareScenario: onShareScenario,
         openFileViewer
       })
-      // `cat` hands a file off to the viewer popup via a directive rather
-      // than printing inline — intercept it, open the popup, print the rest.
+      // Directive lines drive popups instead of printing inline:
+      //   fileview  → cat-style file popup
+      //   helpview  → help cheat-sheet popup
+      //   failure   → crack/unlock/decrypt failure popup (defers any tracer
+      //               trip + history-line record until the popup closes)
       const fv = out.find((l) => l.type === 'fileview')
+      const hp = out.find((l) => l.type === 'helpview')
+      const fail = out.find((l) => l.type === 'failure')
       if (fv) openFileViewer(fv.path, fv.node)
-      const printable = fv ? out.filter((l) => l.type !== 'fileview') : out
+      if (hp) setHelpPopup(true)
+      if (fail) showFailureFromDirective(fail)
+      const printable = out.filter(
+        (l) => l.type !== 'fileview' && l.type !== 'helpview' && l.type !== 'failure'
+      )
       if (printable.length) push(printable)
-      push([{ text: '', instant: true }])
+      // A failure popup defers its own trailing blank to onClose; otherwise
+      // pad with a blank line so the next prompt isn't stuck against output.
+      if (!fail) push([{ text: '', instant: true }])
     },
-    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, resetProgress, openPasswordPrompt, openCrackPrompt, openCheckPrompt, openDecryptGame, openSelfDestruct, tripTracer, flagRescan, evadeTracer, resolveDecryptTarget, lang, checkResults, crackAttempts, gmMode, onToggleGm, onSwitchScenario, onLoadScenarioUrl, onOpenScenarioPaste, onShareScenario, openFileViewer]
+    [theme, themes, cwd, push, clear, reboot, switchTheme, unlocked, unlock, resetProgress, openPasswordPrompt, openCrackPrompt, openCheckPrompt, openDecryptGame, openSelfDestruct, tripTracer, flagRescan, evadeTracer, resolveDecryptTarget, lang, checkResults, crackAttempts, gmMode, onToggleGm, onSwitchScenario, onLoadScenarioUrl, onOpenScenarioPaste, onShareScenario, openFileViewer, showFailureFromDirective]
   )
 
   const inputReady = animIdx >= history.length
@@ -609,7 +683,7 @@ export default function Terminal({
             />
           )
         })}
-        {inputReady && !modal && !decryptGame && !decryptProgress && !decryptSuccess && !fileViewer && authed && (
+        {inputReady && !modal && !decryptGame && !decryptProgress && !decryptSuccess && !fileViewer && !failurePopup && authed && (
           <Prompt
             sigil={theme.prompt ?? '$'}
             cwd={cwd}
@@ -700,6 +774,26 @@ export default function Terminal({
           node={fileViewer.node}
           t={tRef.current}
           onClose={() => setFileViewer(null)}
+        />
+      )}
+      {helpPopup && (
+        <HelpPopup
+          theme={theme}
+          t={tRef.current}
+          onClose={() => setHelpPopup(false)}
+        />
+      )}
+      {failurePopup && (
+        <FailurePopup
+          title={failurePopup.title}
+          message={failurePopup.message}
+          hint={failurePopup.hint}
+          t={tRef.current}
+          onClose={() => {
+            const cb = failurePopup.onClose
+            setFailurePopup(null)
+            cb?.()
+          }}
         />
       )}
       {detonating && <Detonation config={detonating} onReboot={handleDetonationReboot} />}

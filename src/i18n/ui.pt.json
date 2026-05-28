@@ -168,6 +168,12 @@
 
   "viewer.hint": "esc / × para fechar",
   "viewer.close": "fechar",
+  "help.aliases": "(também: {list})",
+  "help.extra": "ESPECÍFICOS DO SISTEMA",
+  "help.footer.desktop": "arraste o cabeçalho para mover · canto inferior direito para redimensionar · esc / × para fechar",
+  "help.footer.mobile": "esc / × para fechar",
+  "failure.title": "OPERAÇÃO FALHOU",
+  "failure.ok": "OK",
   "switcher.system": "sistema",
   "switcher.language": "idioma",
   "switcher.gm.enable": "habilitar para jogadores",

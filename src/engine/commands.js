@@ -25,11 +25,12 @@ import {
 // names themselves never translate. Helpers shared with Terminal.jsx accept
 // `t` explicitly and default to English so unit tests stay language-stable.
 
-const help = (t, extra = []) => [
-  { text: t('help.title'), type: 'ok' },
-  ...t('help.lines').map((text) => ({ text })),
-  ...extra.map((line) => ({ text: line, type: 'muted' }))
-]
+// `help` no longer dumps lines into the terminal; it hands control to the
+// HelpPopup (a movable/resizable cheat sheet on desktop, fixed modal on
+// mobile). Terminal.jsx intercepts the `helpview` directive and opens the
+// popup. The popup itself reads `help.title`, `help.lines`, theme.extraHelp
+// and theme.aliases.
+const help = () => [{ type: 'helpview' }]
 
 // .md files render through the markdown layer; everything else (.log,
 // .dat, ...) prints raw, like a data dump. A file with an `image:`
@@ -62,8 +63,8 @@ function isLocked(node, ctx, path) {
 }
 
 const COMMANDS = {
-  help: (ctx) => help(ctx.t, ctx.theme.extraHelp ?? []),
-  '?': (ctx) => help(ctx.t, ctx.theme.extraHelp ?? []),
+  help: () => help(),
+  '?': () => help(),
 
   clear: (ctx) => {
     ctx.clear()
@@ -449,17 +450,28 @@ const COMMANDS = {
       return [{ text: ctx.t('crack.notenc', { path }), type: 'muted' }]
     if (node.crackable === false) {
       const msg = node.crackFailMessage ?? ctx.t('crack.hardened')
-      const lines = [{ text: msg, type: 'err' }]
-      // Brute-forcing a hardened, *watched* file trips a fast trace.
-      if (node.tracer && ctx.theme.tracer) {
-        const secs = node.tracerNocrackSeconds ?? ctx.theme.tracer.nocrackSeconds ?? 5
-        ctx.tripTracer?.(secs)
-        lines.push({
-          text: ctx.t('crack.intrusion', { label: ctx.theme.tracer.label ?? 'TRACE', secs }),
-          type: 'err'
-        })
-      }
-      return lines
+      const watched = !!(node.tracer && ctx.theme.tracer)
+      const secs = watched
+        ? node.tracerNocrackSeconds ?? ctx.theme.tracer.nocrackSeconds ?? 5
+        : null
+      const label = watched ? ctx.theme.tracer.label ?? 'TRACE' : null
+      // Show the failure as a quick popup; the tracer trip + history record
+      // happen only after the player dismisses it. The popup is the player's
+      // beat of "this didn't work" without the trace stealing seconds
+      // mid-read.
+      return [
+        {
+          type: 'failure',
+          message: msg,
+          tracerTrip: watched ? { seconds: secs } : null,
+          historyLines: watched
+            ? [
+                { text: msg, type: 'err' },
+                { text: ctx.t('crack.intrusion', { label, secs }), type: 'err' }
+              ]
+            : [{ text: msg, type: 'err' }]
+        }
+      ]
     }
     // Difficulty check: GM set a crackDC. Player rolls and enters the
     // result in a dialog; the modal handler in Terminal does the compare.
@@ -477,7 +489,13 @@ const COMMANDS = {
         { text: ctx.t('crack.protected', { path }), type: 'muted' }
       ]
     }
-    return buildCrackLines(ctx.theme, path, node, ctx.unlock, ctx.fs, ctx.t)
+    // On success, also hand the freshly-cracked file to the cat popup so the
+    // player sees what they just unlocked without having to type `cat`.
+    const onUnlock = (p) => {
+      ctx.unlock?.(p)
+      ctx.openFileViewer?.(p, node)
+    }
+    return buildCrackLines(ctx.theme, path, node, onUnlock, ctx.fs, ctx.t)
   },
 
   // `unlock <file> [key]` — apply a known password. Omit the key for the
@@ -684,7 +702,13 @@ function passwordUnlock(ctx, cmd) {
   }
   // Inline path (script/power-user): key already provided.
   if (key === node.password && node.tracer) ctx.evadeTracer?.(node)
-  return buildDecryptLines(ctx.theme, path, node, key, ctx.unlock, ctx.fs, t)
+  // On success, surface the freshly-unlocked file in the cat popup so the
+  // player can read it immediately.
+  const onUnlock = (p) => {
+    ctx.unlock?.(p)
+    ctx.openFileViewer?.(p, node)
+  }
+  return buildDecryptLines(ctx.theme, path, node, key, onUnlock, ctx.fs, t)
 }
 
 // The brute-force success sequence. Used by the plain crack flow and by
@@ -706,9 +730,19 @@ export function buildCrackLines(theme, path, node, unlock, fs, t = makeT('en')) 
 // Shared between the inline (commands.js) and modal (Terminal.jsx) flows.
 export function buildDecryptLines(theme, path, node, key, unlock, fs, t = makeT('en')) {
   if (key !== node.password) {
+    // Wrong key surfaces as a quick failure popup so the player gets a clear
+    // beat of "rejected" — Terminal turns this directive into the popup and
+    // pushes the history record only when it's dismissed.
     return [
-      { text: t('decrypt.rejected'), type: 'err' },
-      { text: t('decrypt.flagged'), type: 'muted' }
+      {
+        type: 'failure',
+        message: t('decrypt.rejected'),
+        hint: t('decrypt.flagged'),
+        historyLines: [
+          { text: t('decrypt.rejected'), type: 'err' },
+          { text: t('decrypt.flagged'), type: 'muted' }
+        ]
+      }
     ]
   }
   const duration = node.decryptTime ?? theme.locks?.decryptDefault ?? 1500
