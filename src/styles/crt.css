@@ -1088,6 +1088,19 @@
     width: calc(100% - 32px);
     max-width: none;
   }
+
+  /* The progress modal used to keep a 420px min-width even when the parent
+     dropped to 92vw, so its inner bar overflowed past the screen on phones.
+     Let it adopt the shared modal width; the bar's <pre> can scroll if its
+     fixed-cell rendering still exceeds the viewport. */
+  .modal--progress {
+    min-width: 0;
+  }
+  .modal__bar {
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: pre;
+  }
 }
 
 /* Prevent iOS Safari from zooming when the (invisible) input focuses.
