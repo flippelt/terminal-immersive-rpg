@@ -455,6 +455,27 @@
   opacity: 0.45;
 }
 
+/* Hidden focusable input that drives the wordle from the keyboard. It must
+   stay rendered + focusable (not display:none / visibility:hidden) so mobile
+   browsers surface the soft keyboard. font-size 16px keeps iOS from auto-
+   zooming on focus. */
+.wordle__capture {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: transparent;
+  caret-color: transparent;
+  font-size: 16px;
+  opacity: 0;
+}
+
 /* === Load custom scenario dialog === */
 .modal--scenario {
   min-width: min(640px, 92vw);
