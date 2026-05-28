@@ -3,6 +3,7 @@ locked: true
 password: OVERSEER73
 crackTime: 8000
 crackable: true
+crackDC: 14
 lockLabel: BREACHING VAULT-TEC ENCRYPTION
 crackSuccessMessage: TERMLINK CRACKED. ATTEMPT LOGGED TO VAULT-TEC HQ.
 reveals: /experiment.dat
