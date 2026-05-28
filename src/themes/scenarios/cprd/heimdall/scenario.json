@@ -76,5 +76,80 @@
       "                                              ",
       " ARA = Arasaka      MIL = Militech            "
     ]
+  },
+  "i18n": {
+    "pt": {
+      "name": "Caso 4127-A — Projeto HEIMDALL",
+      "events": {
+        "/blackbox.dat": [
+          { "text": ">>> LEITURA NÃO AUTORIZADA DETECTADA", "type": "err" },
+          { "text": ">>> RASTREIO DA CORREGEDORIA INICIADO", "type": "err" },
+          { "type": "countdown", "from": 5, "interval": 700, "label": "RASTREIO COMPLETO EM", "alarm": true },
+          { "text": ">>> sua estação foi sinalizada. saia. agora.", "type": "err" }
+        ]
+      },
+      "tracer": {
+        "label": "RASTREIO ICE",
+        "active": "RASTREIO ICE ATIVO",
+        "complete": "RASTREIO COMPLETO — LOCALIZAÇÃO FIXADA",
+        "evaded": ">>> rastreio ICE evadido — conexão higienizada.",
+        "checkAlert": "ATIVIDADE SUSPEITA DETECTADA (VARREDURA REPETIDA)",
+        "caught": {
+          "popups": ["ENCONTREI VOCÊ!", "ENCONTREI VOCÊ", "ESTOU TE VENDO", "PEGUEI", "LENTO DEMAIS", "BOA TENTATIVA, NETRUNNER", "ENCONTREI VOCÊ!"],
+          "popupCount": 16,
+          "finalText": "ENCONTREI VOCÊ",
+          "_smiley": ":)",
+          "hold": 5
+        }
+      },
+      "motd": [
+        "// Console de Agente NetWatch — Subnet de Night City //",
+        "Caso ativo: 4127-A — incursão ilegal, Torre Arasaka",
+        "Último login: 17min atrás (sua estação)",
+        "",
+        "tente: `cat case.md`, `ls suspects`, `architecture`",
+        ""
+      ],
+      "commands": {
+        "trace": [
+          ">>> abrindo canal de rastreio...",
+          ">>> traçando rota por 7 nós de salto...",
+          ">>> [1] 10.0.0.4    backbone Arasaka — desvio",
+          ">>> [2] 192.0.0.99  relay Militech — desvio",
+          ">>> [3] 198.51.0.7  malha civil de Night City",
+          ">>> [4] [CENSURADO]  cloak detectado",
+          ">>> rastreio perdido. alvo usa firmware stealth Hellhound.",
+          ">>> recomendação: implantar ICE Sabertooth."
+        ],
+        "deploy": [
+          "IMPLANTAÇÃO DE ICE NEGRO — confirmar? [s/N]",
+          "s",
+          ">>> ICE SABERTOOTH engajado.",
+          ">>> rastreando sinal do alvo...",
+          ">>> acerto. feedback neural entregue.",
+          ">>> biomonitor do alvo: linha reta.",
+          "",
+          "caso 4127-A: encerrado. arquivo em /sealed/."
+        ],
+        "architecture": [
+          "MAPA DA SUBNET DE NIGHT CITY",
+          "                                              ",
+          "  [REDE GLOBAL]                               ",
+          "       │                                      ",
+          "  ┌────┴────┐                                 ",
+          "  │ NETWATCH│  ← você está aqui               ",
+          "  └────┬────┘                                 ",
+          "       │                                      ",
+          "  ┌────┼─────────────┐                        ",
+          "  │    │             │                        ",
+          "  ▼    ▼             ▼                        ",
+          "[ARA] [MIL]       [CIVIL]                     ",
+          " │     │            │                         ",
+          "host  host        publico                     ",
+          "                                              ",
+          " ARA = Arasaka      MIL = Militech            "
+        ]
+      }
+    }
   }
 }

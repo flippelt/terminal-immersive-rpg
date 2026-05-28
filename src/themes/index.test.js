@@ -103,4 +103,21 @@ describe('per-language content (i18n)', () => {
     expect(en.i18n).toBeUndefined()
     expect(Array.isArray(en.motd)).toBe(true)
   })
+
+  it('applies a bundled scenario translation end-to-end (cprd/heimdall pt)', () => {
+    const en = composeTheme('cprd', 'heimdall', 'en')
+    const pt = composeTheme('cprd', 'heimdall', 'pt')
+    // shell field (motd) is translated
+    expect(en.motd[0]).toContain('NetWatch Agent Console')
+    expect(pt.motd[0]).toContain('Console de Agente NetWatch')
+    // file body comes from the parallel files.pt/ tree
+    expect(en.filesystem['/case.md'].content).toContain('illegal incursion')
+    expect(pt.filesystem['/case.md'].content).toContain('incursão ilegal')
+    // lock metadata is preserved when the body is translated
+    expect(pt.filesystem['/blackbox.dat']).toMatchObject({
+      locked: true,
+      password: 'OPERATION-PHARMAKOS'
+    })
+    expect(pt.filesystem['/blackbox.dat'].content).toContain('OPERAÇÃO PHARMAKOS')
+  })
 })
