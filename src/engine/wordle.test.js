@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { scoreGuess, isWin, pickWord, DEFAULT_WORDS, wordsFor } from './wordle.js'
+import { scoreGuess, isWin, pickWord, DEFAULT_WORDS, wordsFor, rollLuck, pickRevealPositions } from './wordle.js'
 
 describe('scoreGuess', () => {
   it('marks all hits for the exact word', () => {
@@ -56,5 +56,62 @@ describe('default word pools', () => {
       const sixes = wordsFor(lang).filter((w) => w.length === 6)
       expect(sixes.length, `${lang} six-letter count`).toBeGreaterThanOrEqual(25)
     }
+  })
+})
+
+describe('rollLuck', () => {
+  it('returns null for rolls outside 1..20', () => {
+    expect(rollLuck(0)).toBeNull()
+    expect(rollLuck(21)).toBeNull()
+    expect(rollLuck(NaN)).toBeNull()
+    expect(rollLuck('x')).toBeNull()
+  })
+  it('truncates fractional rolls', () => {
+    expect(rollLuck(20.7)?.roll).toBe(20)
+  })
+  it('roll 1 is a critical fail (lose 2 attempts)', () => {
+    expect(rollLuck(1)).toMatchObject({ kind: 'lose', n: 2, tone: 'crit-fail' })
+  })
+  it('rolls 2-9 lose one attempt', () => {
+    for (const r of [2, 5, 9]) {
+      expect(rollLuck(r)).toMatchObject({ kind: 'lose', n: 1, tone: 'fail' })
+    }
+  })
+  it('rolls 10-14 reveal one letter', () => {
+    for (const r of [10, 12, 14]) {
+      expect(rollLuck(r)).toMatchObject({ kind: 'reveal', n: 1, tone: 'good' })
+    }
+  })
+  it('rolls 15-19 reveal two letters (15 sits with the higher tier)', () => {
+    for (const r of [15, 17, 19]) {
+      expect(rollLuck(r)).toMatchObject({ kind: 'reveal', n: 2, tone: 'great' })
+    }
+  })
+  it('roll 20 is a critical hit (reveal three letters)', () => {
+    expect(rollLuck(20)).toMatchObject({ kind: 'reveal', n: 3, tone: 'crit' })
+  })
+})
+
+describe('pickRevealPositions', () => {
+  it('returns up to `count` indices from [0, len) and skips already-taken ones', () => {
+    const taken = new Set([1])
+    // Fixed RNG so the selection is deterministic.
+    const picks = pickRevealPositions(5, 2, taken, () => 0)
+    expect(picks).toHaveLength(2)
+    expect(picks).not.toContain(1)
+    for (const p of picks) {
+      expect(p).toBeGreaterThanOrEqual(0)
+      expect(p).toBeLessThan(5)
+    }
+    // Picks must be distinct.
+    expect(new Set(picks).size).toBe(picks.length)
+  })
+  it('returns fewer than requested when the pool is small', () => {
+    // 4 positions, two already taken → at most 2 picks possible.
+    expect(pickRevealPositions(4, 5, new Set([0, 1])).length).toBe(2)
+  })
+  it('returns an empty array when len is 0 or count is 0', () => {
+    expect(pickRevealPositions(0, 3)).toEqual([])
+    expect(pickRevealPositions(5, 0)).toEqual([])
   })
 })

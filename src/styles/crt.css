@@ -455,6 +455,49 @@
   opacity: 0.45;
 }
 
+/* "Burned" rows — attempts the player lost to a bad luck roll. They sit at
+   the top of the grid as struck-out phantom rows so the player sees the cost. */
+.wordle__row--burned {
+  opacity: 0.55;
+}
+.wordle__tile--burned {
+  border-color: var(--error, #ff3b3b);
+  color: var(--error, #ff3b3b);
+  background: color-mix(in srgb, var(--error, #ff3b3b) 12%, transparent);
+}
+
+/* Reveal hint row — letters the luck roll uncovered. Smaller than the main
+   tiles; positions the player still needs to type are placeholders. */
+.wordle__reveal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 4px 0 10px;
+}
+.wordle__reveal-label {
+  font-size: 0.7em;
+  color: var(--muted, #1a661a);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.wordle__reveal-row {
+  display: flex;
+  gap: 4px;
+}
+.wordle__tile--hint {
+  width: 1.5em;
+  height: 1.5em;
+  font-size: 0.85em;
+  border-color: color-mix(in srgb, var(--muted, #1a661a) 60%, transparent);
+  color: var(--muted, #1a661a);
+}
+.wordle__tile--revealed {
+  color: var(--accent, #88ff88);
+  border-color: var(--accent, #88ff88);
+  background: color-mix(in srgb, var(--accent, #88ff88) 14%, transparent);
+}
+
 /* Hidden focusable input that drives the wordle from the keyboard. It must
    stay rendered + focusable (not display:none / visibility:hidden) so mobile
    browsers surface the soft keyboard. font-size 16px keeps iOS from auto-
@@ -474,6 +517,142 @@
   caret-color: transparent;
   font-size: 16px;
   opacity: 0;
+}
+
+/* === "Feelin' Lucky?" popup (one-shot d20 above the decrypt minigame) === */
+/* Stacks above the wordle modal via a flex column inside the same overlay
+   (.modal-stack). Reuses the modal border + shadow language so it reads as
+   the same chrome, but slightly narrower so the wordle stays the visual
+   anchor. */
+.modal-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  max-width: 92vw;
+}
+.wordle-luck {
+  border: 1px solid var(--fg);
+  background: var(--bg);
+  color: var(--fg);
+  padding: 14px 20px;
+  min-width: min(380px, 92vw);
+  box-shadow:
+    0 0 24px color-mix(in srgb, var(--fg) 35%, transparent),
+    inset 0 0 60px color-mix(in srgb, var(--fg) 6%, transparent);
+  text-shadow: 0 0 4px currentColor;
+  animation: modal-in 0.18s ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.wordle-luck__title {
+  color: var(--accent, #88ff88);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 0.92em;
+}
+.wordle-luck__body {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.wordle-luck__label {
+  color: var(--muted, #1a661a);
+  flex-shrink: 0;
+  letter-spacing: 1px;
+}
+.wordle-luck__input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--muted, #1a661a);
+  outline: none;
+  color: var(--fg);
+  font: inherit;
+  caret-color: var(--fg);
+  text-shadow: inherit;
+  width: 4ch;
+  text-align: center;
+  font-size: max(16px, 1.1em);
+}
+.wordle-luck__input--error {
+  border-bottom-color: var(--error, #ff3b3b);
+  color: var(--error, #ff3b3b);
+  animation: luck-shake 0.25s steps(4, end);
+}
+@keyframes luck-shake {
+  0%   { transform: translateX(0); }
+  25%  { transform: translateX(-3px); }
+  50%  { transform: translateX(3px); }
+  75%  { transform: translateX(-2px); }
+  100% { transform: translateX(0); }
+}
+.wordle-luck__hint {
+  font-size: 0.74em;
+  color: var(--muted, #1a661a);
+  letter-spacing: 1px;
+}
+
+/* Result state — smiley + outcome message. Color and effect track the tone. */
+.wordle-luck--result {
+  align-items: center;
+  text-align: center;
+}
+.wordle-luck__smiley {
+  font-size: 2.2em;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+.wordle-luck__message {
+  font-size: 1.05em;
+  letter-spacing: 1px;
+}
+.wordle-luck__roll {
+  font-size: 0.78em;
+  color: var(--muted, #1a661a);
+  letter-spacing: 2px;
+}
+.wordle-luck--crit-fail .wordle-luck__smiley {
+  color: var(--error, #ff3b3b);
+  animation: luck-jitter 0.18s steps(2, end) 4;
+  text-shadow: 0 0 12px var(--error, #ff3b3b);
+}
+.wordle-luck--crit-fail .wordle-luck__message {
+  color: var(--error, #ff3b3b);
+}
+.wordle-luck--fail .wordle-luck__smiley {
+  color: color-mix(in srgb, var(--error, #ff3b3b) 70%, var(--fg));
+}
+.wordle-luck--good .wordle-luck__smiley {
+  color: var(--accent, #88ff88);
+}
+.wordle-luck--great .wordle-luck__smiley {
+  color: var(--accent, #88ff88);
+  text-shadow: 0 0 10px var(--accent, #88ff88);
+  animation: luck-pulse 0.6s ease-out;
+}
+.wordle-luck--crit .wordle-luck__smiley {
+  color: var(--accent, #88ff88);
+  text-shadow: 0 0 18px var(--accent, #88ff88);
+  animation: luck-burst 0.8s ease-out;
+}
+@keyframes luck-jitter {
+  0%, 100% { transform: translate(0, 0); }
+  25%      { transform: translate(-2px, 1px); }
+  50%      { transform: translate(2px, -1px); }
+  75%      { transform: translate(-1px, 2px); }
+}
+@keyframes luck-pulse {
+  0%   { transform: scale(0.92); opacity: 0.7; }
+  60%  { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); }
+}
+@keyframes luck-burst {
+  0%   { transform: scale(0.6) rotate(-8deg); opacity: 0.3; filter: brightness(1.6); }
+  40%  { transform: scale(1.18) rotate(6deg); opacity: 1; filter: brightness(1.4); }
+  70%  { transform: scale(1) rotate(-2deg); }
+  100% { transform: scale(1) rotate(0); filter: brightness(1); }
 }
 
 /* === Load custom scenario dialog === */
@@ -1237,7 +1416,10 @@
   .tracer-vignette,
   .detonation__cell,
   .decrypt-success__granted,
-  .decrypt-success__caret {
+  .decrypt-success__caret,
+  .wordle-luck,
+  .wordle-luck__smiley,
+  .wordle-luck__input--error {
     animation: none;
   }
   .detonation__cell {
